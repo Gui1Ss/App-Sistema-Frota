@@ -1,11 +1,10 @@
 import React, { useEffect } from 'react';
-import { Router, Route, Redirect, Switch } from 'wouter';
+import { Router, Route, Redirect } from 'wouter'; // ← sem Switch
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { EntregasProvider } from './contexts/EntregasContext';
 import { ToastContainer } from './components/Toast';
 import { storageService } from './services/storage';
 
-// Pages
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { EntregasList } from './pages/EntregasList';
@@ -32,7 +31,7 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <Switch>
+    <>
       <Route path="/login">
         {isAuthenticated ? <Redirect to="/dashboard" /> : <Login />}
       </Route>
@@ -57,10 +56,11 @@ const AppContent: React.FC = () => {
         <ProtectedRoute component={Historico} />
       </Route>
 
-      <Route>
+      {/* Fallback */}
+      <Route path="~*">
         {isAuthenticated ? <Redirect to="/dashboard" /> : <Redirect to="/login" />}
       </Route>
-    </Switch>
+    </>
   );
 };
 
