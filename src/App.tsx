@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Router, Route, Redirect } from 'wouter'; // ← sem Switch
+import React, { useEffect, useState } from 'react';
+import { Router, Route, useLocation } from 'wouter';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { EntregasProvider } from './contexts/EntregasContext';
 import { ToastContainer } from './components/Toast';
@@ -12,20 +12,38 @@ import { EntregaDetails } from './pages/EntregaDetails';
 import { ConfirmacaoEntrega } from './pages/ConfirmacaoEntrega';
 import { Historico } from './pages/Historico';
 
-const ProtectedRoute: React.FC<{ component: React.ComponentType }> = ({
+const ProtectedRoute: React.FC<{ component: React.ComponentType<any> }> = ({
   component: Component,
 }) => {
   const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <Component /> : <Redirect to="/login" />;
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setLocation('/login');
+    }
+  }, [isAuthenticated, setLocation]);
+
+  return isAuthenticated ? <Component /> : null;
 };
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      setLocation('/login');
+    }
+  }, [isAuthenticated, isLoading, setLocation]);
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        Carregando...
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando...</p>
+        </div>
       </div>
     );
   }
@@ -33,7 +51,7 @@ const AppContent: React.FC = () => {
   return (
     <>
       <Route path="/login">
-        {isAuthenticated ? <Redirect to="/dashboard" /> : <Login />}
+        <Login />
       </Route>
 
       <Route path="/dashboard">
@@ -56,28 +74,45 @@ const AppContent: React.FC = () => {
         <ProtectedRoute component={Historico} />
       </Route>
 
-      {/* Fallback */}
-      <Route path="~*">
-        {isAuthenticated ? <Redirect to="/dashboard" /> : <Redirect to="/login" />}
+      <Route path="/">
+        <ProtectedRoute component={Dashboard} />
       </Route>
     </>
   );
 };
 
 function App() {
+  const [storageReady, setStorageReady] = useState(false);
+
   useEffect(() => {
-    storageService.init().catch(console.error);
+    storageService.init()
+      .then(() => setStorageReady(true))
+      .catch((error) => {
+        console.error('Erro ao inicializar storage:', error);
+        setStorageReady(true);
+      });
   }, []);
 
+  if (!storageReady) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Inicializando...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <AuthProvider>
-      <EntregasProvider>
-        <Router>
+    <Router>
+      <AuthProvider>
+        <EntregasProvider>
           <AppContent />
           <ToastContainer />
-        </Router>
-      </EntregasProvider>
-    </AuthProvider>
+        </EntregasProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 
