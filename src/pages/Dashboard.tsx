@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'wouter';
+import { useLocation } from 'wouter';
 import { Header } from '../components/Header';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
@@ -21,7 +21,7 @@ interface DashboardData {
 }
 
 export const Dashboard: React.FC = () => {
-  const [, navigate] = useRouter() as any;
+  const [, setLocation] = useLocation();
   const { motorista, logout } = useAuth();
   const { carregarEntregas } = useEntregas();
 
@@ -52,7 +52,7 @@ export const Dashboard: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    setLocation('/login');
   };
 
   if (isLoading) {
@@ -153,7 +153,7 @@ export const Dashboard: React.FC = () => {
               variant="primary"
               size="lg"
               fullWidth
-              onClick={() => navigate('/entregas')}
+              onClick={() => setLocation('/entregas')}
             >
               📋 Ver Entregas
             </Button>
@@ -161,7 +161,7 @@ export const Dashboard: React.FC = () => {
               variant="secondary"
               size="lg"
               fullWidth
-              onClick={() => navigate('/historico')}
+              onClick={() => setLocation('/historico')}
             >
               📊 Histórico
             </Button>

@@ -1,5 +1,14 @@
 // API
-export const API_BASE_URL = 'http://localhost:8000/api';
+const getApiUrl = () => {
+  // Em desenvolvimento local
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:8000/api';
+  }
+  // Em produção, usa o mesmo host
+  return `http://${window.location.hostname}:8000/api`;
+};
+
+export const API_BASE_URL = getApiUrl( );
 export const API_TIMEOUT = 30000; // 30 segundos
 
 // Storage Keys

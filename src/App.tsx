@@ -5,6 +5,7 @@ import { EntregasProvider } from './contexts/EntregasContext';
 import { ToastContainer } from './components/Toast';
 import { storageService } from './services/storage';
 
+// Pages
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { EntregasList } from './pages/EntregasList';
@@ -12,96 +13,76 @@ import { EntregaDetails } from './pages/EntregaDetails';
 import { ConfirmacaoEntrega } from './pages/ConfirmacaoEntrega';
 import { Historico } from './pages/Historico';
 
-const ProtectedRoute: React.FC<{ component: React.ComponentType<any> }> = ({
-  component: Component,
-}) => {
-  const { isAuthenticated } = useAuth();
-  const [, setLocation] = useLocation();
+// Loading screen
+const LoadingScreen: React.FC = () => (
+  <div className="flex items-center justify-center h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto mb-6"></div>
+      <p className="text-gray-600 font-medium">Inicializando aplicação...</p>
+    </div>
+  </div>
+);
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setLocation('/login');
-    }
-  }, [isAuthenticated, setLocation]);
-
-  return isAuthenticated ? <Component /> : null;
-};
+// Not Found screen
+const NotFound: React.FC = () => (
+  <div className="flex items-center justify-center h-screen bg-gray-50">
+    <div className="text-center">
+      <h1 className="text-4xl font-bold text-gray-800 mb-2">404</h1>
+      <p className="text-gray-600">Página não encontrada</p>
+    </div>
+  </div>
+);
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
 
+  // Redireciona para login se não autenticado e tenta acessar rota protegida
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      setLocation('/login');
+      // Se está em uma rota protegida, redireciona para login
+      if (location !== '/login') {
+        setLocation('/login');
+      }
     }
-  }, [isAuthenticated, isLoading, setLocation]);
+  }, [isAuthenticated, isLoading, location, setLocation]);
 
+  // Mostra loading enquanto verifica autenticação
   if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  // Se não autenticado, mostra apenas login
+  if (!isAuthenticated) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando...</p>
-        </div>
-      </div>
+      <>
+        <Route path="/login" component={Login} />
+        <Route path="*" component={Login} />
+      </>
     );
   }
 
+  // Se autenticado, mostra todas as rotas
   return (
     <>
-      <Route path="/login">
-        <Login />
-      </Route>
-
-      <Route path="/dashboard">
-        <ProtectedRoute component={Dashboard} />
-      </Route>
-
-      <Route path="/entregas">
-        <ProtectedRoute component={EntregasList} />
-      </Route>
-
-      <Route path="/entregas/:id">
-        <ProtectedRoute component={EntregaDetails} />
-      </Route>
-
-      <Route path="/confirmar/:id">
-        <ProtectedRoute component={ConfirmacaoEntrega} />
-      </Route>
-
-      <Route path="/historico">
-        <ProtectedRoute component={Historico} />
-      </Route>
-
-      <Route path="/">
-        <ProtectedRoute component={Dashboard} />
-      </Route>
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/entregas" component={EntregasList} />
+      <Route path="/entregas/:id" component={EntregaDetails} />
+      <Route path="/confirmar/:id" component={ConfirmacaoEntrega} />
+      <Route path="/historico" component={Historico} />
+      <Route path="/" component={Dashboard} />
+      <Route path="*" component={NotFound} />
     </>
   );
 };
 
-function App() {
-  const [storageReady, setStorageReady] = useState(false);
+interface AppProps {
+  storageReady: boolean;
+}
 
-  useEffect(() => {
-    storageService.init()
-      .then(() => setStorageReady(true))
-      .catch((error) => {
-        console.error('Erro ao inicializar storage:', error);
-        setStorageReady(true);
-      });
-  }, []);
-
+const AppWithStorage: React.FC<AppProps> = ({ storageReady }) => {
   if (!storageReady) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Inicializando...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
@@ -114,6 +95,27 @@ function App() {
       </AuthProvider>
     </Router>
   );
+};
+
+function App() {
+  const [storageReady, setStorageReady] = useState(false);
+
+  useEffect(() => {
+    const initStorage = async () => {
+      try {
+        await storageService.init();
+        setStorageReady(true);
+      } catch (error) {
+        console.error('Erro ao inicializar storage:', error);
+        // Continua mesmo com erro de storage
+        setStorageReady(true);
+      }
+    };
+
+    initStorage();
+  }, []);
+
+  return <AppWithStorage storageReady={storageReady} />;
 }
 
 export default App;

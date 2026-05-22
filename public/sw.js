@@ -1,4 +1,4 @@
-const CACHE_NAME = 'app-motorista-v1';
+const CACHE_NAME = 'app-motorista-v3-' + new Date().getTime();
 const urlsToCache = [
   '/',
   '/index.html',
@@ -9,7 +9,10 @@ const urlsToCache = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(urlsToCache);
+      return cache.addAll(urlsToCache).catch((error) => {
+        console.warn('Erro ao cachear URLs:', error);
+        // Continua mesmo se falhar
+      });
     })
   );
   self.skipWaiting();
@@ -21,7 +24,8 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
+          if (cacheName !== CACHE_NAME && cacheName.includes('app-motorista')) {
+            console.log('Deletando cache antigo:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -31,15 +35,17 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Estratégia: Network first, fallback to cache
+// Estratégia: Network first para APIs, Cache first para assets
 self.addEventListener('fetch', (event) => {
   // Ignora requisições não-GET
   if (event.request.method !== 'GET') {
     return;
   }
 
-  // Ignora requisições para APIs
-  if (event.request.url.includes('/api/')) {
+  const url = new URL(event.request.url);
+
+  // Para APIs: Network first, fallback to cache
+  if (url.pathname.includes('/api/')) {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
@@ -61,7 +67,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Para outros recursos, usa cache first
+  // Para assets estáticos: Cache first, fallback to network
   event.respondWith(
     caches.match(event.request).then((response) => {
       if (response) {
@@ -78,6 +84,9 @@ self.addEventListener('fetch', (event) => {
         });
 
         return response;
+      }).catch(() => {
+        // Se falhar, tenta cache
+        return caches.match(event.request);
       });
     })
   );
