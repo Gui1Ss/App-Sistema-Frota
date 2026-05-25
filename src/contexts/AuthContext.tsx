@@ -1,55 +1,58 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { Motorista, AuthContextType } from '../types/auth';
-import { apiService } from '../services/api';
-import { STORAGE_KEYS } from '../utils/constants';
+import apiService from '../services/api';
+
+export interface Motorista {
+  id: string;
+  name: string;
+  cpf: string;
+  phone: string;
+  email: string;
+  licensenumber: string;
+}
+
+export interface AuthContextType {
+  motorista: Motorista | null;
+  token: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  login: (cpf: string, senha: string) => Promise<void>;
+  logout: () => void;
+}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+const STORAGE_KEYS = {
+  AUTH_TOKEN: 'auth_token',
+  MOTORISTA_ID: 'motorista_id',
+};
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [motorista, setMotorista] = useState<Motorista | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Inicializa contexto ao montar
+  // Restaurar sessão ao carregar
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const savedToken = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-        if (savedToken) {
-          setToken(savedToken);
-          // Valida token no backend
-          const response = await apiService.get<{ motorista: Motorista }>(
-            '/motoristas/me'
-          );
-          setMotorista(response.motorista);
-        }
-      } catch (error) {
-        console.error('Erro ao inicializar autenticação:', error);
-        localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
-        setToken(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initAuth();
+    const savedToken = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+    if (savedToken) {
+      setToken(savedToken);
+    }
   }, []);
 
   const login = async (cpf: string, senha: string) => {
     setIsLoading(true);
     try {
+      // Remover formatação do CPF
+      const cpfLimpo = cpf.replace(/\D/g, '');
+      
       const response = await apiService.post<{
         token: string;
         motorista: Motorista;
-      }>('/login', { cpf, senha });
-
+      }>('/api/login', { cpf: cpfLimpo, senha });
+      
       const { token: newToken, motorista: motoristData } = response;
-
       localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, newToken);
       localStorage.setItem(STORAGE_KEYS.MOTORISTA_ID, motoristData.id);
-
       setToken(newToken);
       setMotorista(motoristData);
     } catch (error) {
