@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { useLocation } from 'wouter';
-import { Input } from '../components/ui/input';
-import { Button } from '../components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../hooks/useToast';
 
@@ -58,7 +56,6 @@ export const Login: React.FC = () => {
       return;
     }
 
-    setIsLoading;
     setErrors({});
 
     try {
@@ -111,14 +108,18 @@ export const Login: React.FC = () => {
               <label htmlFor="cpf" className="block text-sm font-semibold text-gray-800 mb-3">
                 CPF
               </label>
-              <Input
+              <input
                 id="cpf"
                 type="text"
                 placeholder="000.000.000-00"
                 value={cpf}
                 onChange={handleCPFChange}
                 disabled={isLoading}
-                className={`text-lg py-3 ${errors.cpf ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
+                className={`w-full text-lg py-3 px-4 border-2 rounded-lg focus:outline-none focus:ring-2 transition ${
+                  errors.cpf
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-blue-500'
+                }`}
               />
               {errors.cpf && (
                 <p className="text-red-600 text-sm mt-2 font-medium">{errors.cpf}</p>
@@ -130,14 +131,18 @@ export const Login: React.FC = () => {
               <label htmlFor="senha" className="block text-sm font-semibold text-gray-800 mb-3">
                 Senha
               </label>
-              <Input
+              <input
                 id="senha"
                 type="password"
                 placeholder="••••••••"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 disabled={isLoading}
-                className={`text-lg py-3 ${errors.senha ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
+                className={`w-full text-lg py-3 px-4 border-2 rounded-lg focus:outline-none focus:ring-2 transition ${
+                  errors.senha
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-blue-500'
+                }`}
               />
               {errors.senha && (
                 <p className="text-red-600 text-sm mt-2 font-medium">{errors.senha}</p>
@@ -145,10 +150,10 @@ export const Login: React.FC = () => {
             </div>
 
             {/* Botão */}
-            <Button
+            <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              className="w-full py-3 text-lg font-semibold bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors"
             >
               {isLoading ? (
                 <span className="flex items-center justify-center">
@@ -161,7 +166,7 @@ export const Login: React.FC = () => {
               ) : (
                 'Entrar'
               )}
-            </Button>
+            </button>
           </form>
 
           {/* Divider */}
