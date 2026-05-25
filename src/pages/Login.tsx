@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '../hooks/useToast';
 
 const formatCPF = (value: string): string => {
   const cleaned = value.replace(/\D/g, '');
@@ -36,10 +35,10 @@ const validateLoginForm = (cpf: string, senha: string) => {
 export const Login: React.FC = () => {
   const [, setLocation] = useLocation();
   const { login, isLoading } = useAuth();
-  const { showToast } = useToast();
   const [cpf, setCpf] = useState('');
   const [senha, setSenha] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleCPFChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '');
@@ -57,14 +56,16 @@ export const Login: React.FC = () => {
     }
 
     setErrors({});
+    setSuccessMessage('');
 
     try {
       await login(cpf, senha);
-      showToast('Login realizado com sucesso!', 'success');
-      setLocation('/dashboard');
+      setSuccessMessage('Login realizado com sucesso!');
+      setTimeout(() => {
+        setLocation('/dashboard');
+      }, 1000);
     } catch (error: any) {
       const errorMessage = error?.message || 'Erro ao fazer login. Tente novamente.';
-      showToast(errorMessage, 'error');
       setErrors({ form: errorMessage });
     }
   };
@@ -96,6 +97,13 @@ export const Login: React.FC = () => {
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-2xl p-10">
           <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Sucesso */}
+            {successMessage && (
+              <div className="bg-green-50 border-l-4 border-green-500 rounded-lg p-4">
+                <p className="text-green-700 text-sm font-medium">{successMessage}</p>
+              </div>
+            )}
+
             {/* Erro geral */}
             {errors.form && (
               <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4">
