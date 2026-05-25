@@ -25,7 +25,8 @@ export interface PaginatedResponse<T> {
 // --- A PARTE QUE ESTÁ FALTANDO ---
 
 const api = axios.create({
-  baseURL: 'http://SEU_IP_AQUI:3000', // Coloque o IP do seu Debian ou domínio
+  // Adicione o http:// na frente!
+  baseURL: 'http://192.168.1.178:8000', 
   headers: {
     'Content-Type': 'application/json',
   },
