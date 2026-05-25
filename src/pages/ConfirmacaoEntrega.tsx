@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { useRouter } from 'wouter';
+import { useLocation } from 'wouter';
 import { Header } from '../components/Header';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
@@ -10,8 +10,7 @@ import { gpsService } from '../services/gps';
 import type { GPSPosition } from '../services/gps';
 
 export const ConfirmacaoEntrega: React.FC = () => {
-  const [, navigate] = useRouter() as any;
-  
+  const [, setLocation] = useLocation();
 
   const { entregaSelecionada, confirmarEntrega } = useEntregas();
   const { show: showToast } = useToast();
@@ -44,7 +43,7 @@ export const ConfirmacaoEntrega: React.FC = () => {
     return () => {
       gpsService.stopTracking();
     };
-  }, []);
+  }, [showToast]);
 
   // Inicializa canvas para assinatura
   useEffect(() => {
@@ -166,7 +165,7 @@ export const ConfirmacaoEntrega: React.FC = () => {
       });
 
       showToast('Entrega confirmada com sucesso!', 'success');
-      navigate('/entregas');
+      setLocation('/entregas');
     } catch (error: any) {
       showToast(error.message || 'Erro ao confirmar entrega', 'error');
     } finally {
@@ -179,7 +178,7 @@ export const ConfirmacaoEntrega: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card>
           <p className="text-danger mb-4">Entrega não selecionada</p>
-          <Button onClick={() => navigate('/entregas')}>Voltar</Button>
+          <Button onClick={() => setLocation('/entregas')}>Voltar</Button>
         </Card>
       </div>
     );
@@ -311,7 +310,7 @@ export const ConfirmacaoEntrega: React.FC = () => {
               variant="secondary"
               size="lg"
               fullWidth
-              onClick={() => navigate('/entregas')}
+              onClick={() => setLocation('/entregas')}
             >
               ← Cancelar
             </Button>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'wouter';
+import { useLocation } from 'wouter';
 import { Header } from '../components/Header';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
@@ -11,7 +11,7 @@ import { ENTREGA_STATUS_LABELS, ENTREGA_STATUS_COLORS } from '../utils/constants
 import type { Entrega } from '../types/entrega';
 
 export const EntregasList: React.FC = () => {
-  const [, navigate] = useRouter() as any;
+  const [, setLocation] = useLocation();
   const { motorista } = useAuth();
   const { entregas, isLoading, carregarEntregas, selecionarEntrega } = useEntregas();
 
@@ -24,7 +24,7 @@ export const EntregasList: React.FC = () => {
     if (motorista?.id) {
       carregarEntregas(motorista.id);
     }
-  }, [motorista?.id]);
+  }, [motorista?.id, carregarEntregas]);
 
   useEffect(() => {
     let filtered = entregas;
@@ -49,7 +49,7 @@ export const EntregasList: React.FC = () => {
 
   const handleSelectEntrega = (entrega: Entrega) => {
     selecionarEntrega(entrega);
-    navigate(`/entregas/${entrega.id}`);
+    setLocation(`/entregas/${entrega.id}`);
   };
 
   if (isLoading) {
@@ -150,7 +150,7 @@ export const EntregasList: React.FC = () => {
           <Button
             variant="secondary"
             fullWidth
-            onClick={() => navigate('/dashboard')}
+            onClick={() => setLocation('/dashboard')}
           >
             ← Voltar
           </Button>

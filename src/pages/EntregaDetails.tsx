@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'wouter';
+import { useLocation, useParams } from 'wouter';
 import { Header } from '../components/Header';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
@@ -11,7 +11,7 @@ import { ENTREGA_STATUS_LABELS, ENTREGA_STATUS_COLORS } from '../utils/constants
 import type { Entrega } from '../types/entrega';
 
 export const EntregaDetails: React.FC = () => {
-  const [, navigate] = useRouter() as any;
+  const [, setLocation] = useLocation();
   const params = useParams();
   const entregaId = params.id;
 
@@ -30,7 +30,7 @@ export const EntregaDetails: React.FC = () => {
           setEntrega(response);
         } catch (error: any) {
           showToast('Erro ao carregar entrega', 'error');
-          navigate('/entregas');
+          setLocation('/entregas');
         } finally {
           setIsLoading(false);
         }
@@ -38,7 +38,7 @@ export const EntregaDetails: React.FC = () => {
 
       loadEntrega();
     }
-  }, [entregaId, entregaSelecionada]);
+  }, [entregaId, entregaSelecionada, setLocation, showToast]);
 
   const handleSaiuParaEntrega = async () => {
     if (!entrega) return;
@@ -55,7 +55,7 @@ export const EntregaDetails: React.FC = () => {
       // });
 
       showToast('WhatsApp enviado com sucesso!', 'success');
-      navigate('/entregas');
+      setLocation('/entregas');
     } catch (error: any) {
       showToast(error.message || 'Erro ao atualizar status', 'error');
     } finally {
@@ -65,7 +65,7 @@ export const EntregaDetails: React.FC = () => {
 
   const handleConfirmarEntrega = () => {
     if (!entrega) return;
-    navigate(`/confirmar/${entrega.id}`);
+    setLocation(`/confirmar/${entrega.id}`);
   };
 
   if (isLoading) {
@@ -77,7 +77,7 @@ export const EntregaDetails: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card>
           <p className="text-danger mb-4">Entrega não encontrada</p>
-          <Button onClick={() => navigate('/entregas')}>Voltar</Button>
+          <Button onClick={() => setLocation('/entregas')}>Voltar</Button>
         </Card>
       </div>
     );
@@ -209,7 +209,7 @@ export const EntregaDetails: React.FC = () => {
               variant="secondary"
               size="lg"
               fullWidth
-              onClick={() => navigate('/entregas')}
+              onClick={() => setLocation('/entregas')}
             >
               ← Voltar
             </Button>

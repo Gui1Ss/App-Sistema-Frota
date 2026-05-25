@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'wouter';
+import { useLocation } from 'wouter';
 import { Header } from '../components/Header';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
@@ -9,7 +9,7 @@ import { formatDate } from '../utils/formatters';
 import type { Entrega } from '../types/entrega';
 
 export const Historico: React.FC = () => {
-  const [, navigate] = useRouter() as any;
+  const [, setLocation] = useLocation();
 
   const [entregas, setEntregas] = useState<Entrega[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -141,7 +141,7 @@ export const Historico: React.FC = () => {
           <Button
             variant="secondary"
             fullWidth
-            onClick={() => navigate('/dashboard')}
+            onClick={() => setLocation('/dashboard')}
           >
             ← Voltar
           </Button>
