@@ -28,11 +28,11 @@ export const Login: React.FC = () => {
     e.preventDefault();
 
     // Validação
-    const validation = validateLoginForm(cpf, senha);
+   /* const validation = validateLoginForm(cpf, senha);
     if (!validation.isValid) {
       setErrors(validation.errors);
       return;
-    }
+    }*/
 
     setIsLoading(true);
     setErrors({});
