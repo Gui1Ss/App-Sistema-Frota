@@ -6,7 +6,8 @@ class ApiService {
   private timeout: number;
 
   constructor(baseUrl: string = API_BASE_URL, timeout: number = API_TIMEOUT) {
-    this.baseUrl = baseUrl;
+    // Garantir que a URL não termine com barra para evitar barras duplas nas requisições
+    this.baseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     this.timeout = timeout;
   }
 

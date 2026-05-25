@@ -19,11 +19,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const savedToken = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
         if (savedToken) {
           setToken(savedToken);
-          // Valida token no backend
-          const response = await apiService.get<{ motorista: Motorista }>(
-            '/motoristas/me'
-          );
-          setMotorista(response.motorista);
+          // O backend não tem /motoristas/me ainda, então vamos pegar do localStorage se disponível
+          const savedMotorista = localStorage.getItem(STORAGE_KEYS.MOTORISTA_ID);
+          if (savedMotorista) {
+            try {
+              setMotorista(JSON.parse(savedMotorista));
+            } catch (e) {
+              console.error('Erro ao parsear motorista salvo:', e);
+            }
+          }
         }
       } catch (error) {
         console.error('Erro ao inicializar autenticação:', error);
@@ -37,21 +41,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     initAuth();
   }, []);
 
-  const login = async (cpf: string, senha: string) => {
+  const login = async (cpf: string, passwordHash: string) => {
     setIsLoading(true);
     try {
-      const response = await apiService.post<{
-        token: string;
-        motorista: Motorista;
-      }>('/login', { cpf, senha });
+      // O backend espera { email, password }
+      // O app envia cpf como email (ou o usuário digita o email no campo CPF)
+      const response = await apiService.post<any>('/drivers/login', { 
+        cpf: cpf, 
+        passwordHash
+      });
 
-      const { token: newToken, motorista: motoristData } = response;
+      console.log('Resposta login:', response);
+      
+      const newToken = response.access_token;
+      const driverData = response.driver;
+
+      if (!newToken) {
+        throw new Error('Token não recebido do servidor');
+      }
+
+      // Transformar driver (backend) para motorista (frontend)
+      const motoristaFormatado: Motorista = {
+        id: driverData.id,
+        nome: driverData.name,
+        cpf: driverData.cpf,
+        telefone: driverData.phone,
+        email: driverData.email,
+        cnh: driverData.licensenumber,
+        cnhValidade: driverData.licenseexpiry,
+        categoria: driverData.licensecategory,
+        status: driverData.status,
+        criadoEm: driverData.createdat || new Date().toISOString(),
+        atualizadoEm: driverData.updatedat || new Date().toISOString()
+      };
 
       localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, newToken);
-      localStorage.setItem(STORAGE_KEYS.MOTORISTA_ID, motoristData.id);
+      localStorage.setItem(STORAGE_KEYS.MOTORISTA_ID, JSON.stringify(motoristaFormatado));
 
       setToken(newToken);
-      setMotorista(motoristData);
+      setMotorista(motoristaFormatado);
     } catch (error) {
       console.error('Erro ao fazer login:', error);
       throw error;
