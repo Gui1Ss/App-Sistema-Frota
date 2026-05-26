@@ -9,7 +9,7 @@ const getApiUrl = () => {
 };
 
 // export const API_BASE_URL = getApiUrl( );
-export const API_BASE_URL = 'http://192.168.1.178:8000';
+export const API_BASE_URL = 'http://192.168.1.172:8000';
 export const API_TIMEOUT = 30000; // 30 segundos
 
 // Storage Keys
