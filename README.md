@@ -1,291 +1,126 @@
-# App Motorista - Sistema de Entregas
+# Sistema Frota - App React Native
 
-Aplicação React PWA (Progressive Web App) para gerenciar entregas e rotas de motoristas com suporte offline, GPS, câmera e assinatura digital.
+Aplicação React Native (Expo) para gerenciamento de entregas e rotas de motoristas.
 
-## 🚀 Características
+## Tecnologias
 
-- ✅ **Autenticação** - Login com CPF e senha
-- ✅ **Dashboard** - Resumo de entregas do dia
-- ✅ **Lista de Entregas** - Visualizar e filtrar entregas
-- ✅ **Detalhes da Entrega** - Informações completas de cada entrega
-- ✅ **GPS** - Rastreamento em tempo real
-- ✅ **Câmera** - Captura de fotos de entrega
-- ✅ **Assinatura Digital** - Coleta de assinatura do cliente
-- ✅ **WhatsApp** - Envio de notificações (integração)
-- ✅ **Offline** - Funciona sem conexão com sincronização automática
-- ✅ **PWA** - Instalável como app nativo
-- ✅ **Responsivo** - Funciona em desktop e mobile
+- **React Native** com **Expo** (SDK 56)
+- **TypeScript**
+- **React Navigation** (navegação nativa)
+- **AsyncStorage** (persistência local)
+- **expo-location** (GPS)
+- **expo-image-picker** (câmera e galeria)
+- **react-native-signature-canvas** (assinatura do destinatário)
+- **react-native-safe-area-context** (safe area)
 
-## 📋 Pré-requisitos
-
-- Node.js 18+
-- pnpm (recomendado) ou npm
-- Backend FastAPI rodando em `http://localhost:8000`
-
-## 🛠️ Instalação
-
-### 1. Clonar o repositório
-
-```bash
-git clone <seu-repositorio>
-cd app-motorista
-```
-
-### 2. Instalar dependências
-
-```bash
-pnpm install
-```
-
-### 3. Configurar variáveis de ambiente
-
-Crie um arquivo `.env.local` na raiz do projeto:
-
-```env
-VITE_API_URL=http://localhost:8000/api
-```
-
-### 4. Iniciar o servidor de desenvolvimento
-
-```bash
-pnpm dev
-```
-
-A aplicação estará disponível em `http://localhost:5173`
-
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 src/
 ├── components/          # Componentes reutilizáveis
-│   ├── Button.tsx
-│   ├── Input.tsx
-│   ├── Card.tsx
-│   ├── Header.tsx
-│   ├── Loading.tsx
-│   └── Toast.tsx
-├── contexts/           # Contextos React
-│   ├── AuthContext.tsx
-│   └── EntregasContext.tsx
-├── hooks/              # Custom hooks
-│   ├── usePWA.ts
-│   └── useComposition.ts
-├── pages/              # Páginas da aplicação
-│   ├── Login.tsx
-│   ├── Dashboard.tsx
-│   ├── EntregasList.tsx
-│   ├── EntregaDetails.tsx
-│   ├── ConfirmacaoEntrega.tsx
-│   └── Historico.tsx
-├── services/           # Serviços
-│   ├── api.ts          # Cliente HTTP
-│   ├── gps.ts          # Geolocalização
-│   └── storage.ts      # IndexedDB
-├── types/              # Tipos TypeScript
+│   ├── Button.tsx       # Botão com variantes (primary, secondary, success, danger)
+│   ├── Card.tsx         # Card com suporte a clique
+│   ├── Header.tsx       # Cabeçalho com info do motorista
+│   ├── Input.tsx        # Campo de entrada com label e erro
+│   ├── Loading.tsx      # Indicador de carregamento
+│   └── StatusBadge.tsx  # Badge de status da entrega
+├── contexts/            # Contextos React
+│   ├── AuthContext.tsx  # Autenticação e dados do motorista
+│   ├── EntregasContext.tsx  # Estado das entregas
+│   └── ToastContext.tsx # Notificações toast globais
+├── hooks/               # Custom hooks
+│   └── useToast.ts
+├── navigation/          # Configuração de navegação
+│   ├── AppNavigator.tsx # Navegador principal
+│   └── types.ts         # Tipos das rotas
+├── screens/             # Telas da aplicação
+│   ├── LoginScreen.tsx          # Login com CPF e senha
+│   ├── DashboardScreen.tsx      # Dashboard com estatísticas
+│   ├── EntregasListScreen.tsx   # Lista de entregas com filtros
+│   ├── EntregaDetailsScreen.tsx # Detalhes e ações da entrega
+│   ├── ConfirmacaoEntregaScreen.tsx  # Foto + assinatura + GPS
+│   ├── HistoricoScreen.tsx      # Histórico por data
+│   └── LoadingScreen.tsx        # Tela de carregamento
+├── services/            # Serviços
+│   └── api.ts           # Cliente HTTP com AsyncStorage
+├── types/               # Tipos TypeScript
 │   ├── auth.ts
-│   ├── entrega.ts
-│   └── api.ts
-├── utils/              # Utilitários
-│   ├── constants.ts
-│   ├── formatters.ts
-│   └── validators.ts
-├── App.tsx             # Roteamento
-├── main.tsx            # Entry point
-└── index.css           # Estilos globais
+│   └── entrega.ts
+└── utils/               # Utilitários
+    ├── constants.ts     # Constantes (API_URL, cores, status)
+    └── formatters.ts    # Formatadores de data, CPF, etc.
 ```
 
-## 🔌 API Endpoints
+## API Endpoints
 
-A aplicação espera os seguintes endpoints do backend:
+Backend em `http://192.168.1.178:8000`
 
-### Autenticação
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `POST` | `/drivers/login` | Login do motorista |
+| `GET` | `/drivers` | Dados do dashboard |
+| `GET` | `/entregas/rota/:rotaId` | Listar entregas da rota |
+| `GET` | `/entregas/:id` | Detalhes da entrega |
+| `PUT` | `/entregas/:id/status` | Atualizar status |
+| `POST` | `/entregas/:id/confirmar` | Confirmar com foto e assinatura |
+| `GET` | `/entregas?status=entregue&data=YYYY-MM-DD` | Histórico |
 
-- `POST /api/login` - Fazer login
-- `GET /api/motoristas/me` - Obter dados do motorista
+## Como Executar
 
-### Dashboard
+### Pré-requisitos
 
-- `GET /api/dashboard/motorista` - Dados do dashboard
-
-### Entregas
-
-- `GET /api/entregas/rota/:rotaId` - Listar entregas da rota
-- `GET /api/entregas/:id` - Obter detalhes da entrega
-- `PUT /api/entregas/:id/status` - Atualizar status
-- `POST /api/entregas/:id/confirmar` - Confirmar entrega com foto e assinatura
-
-### WhatsApp (Opcional)
-
-- `POST /api/whatsapp/send` - Enviar mensagem WhatsApp
-
-## 🗂️ Tipos de Dados
-
-### Motorista
-
-```typescript
-interface Motorista {
-  id: string;
-  nome: string;
-  cpf: string;
-  cnh: string;
-  telefone: string;
-  email?: string;
-  status: 'ativo' | 'inativo' | 'bloqueado';
-}
-```
-
-### Entrega
-
-```typescript
-interface Entrega {
-  id: string;
-  rotaId: string;
-  pedidoId: string;
-  status: 'pendente' | 'em_andamento' | 'entregue' | 'falha';
-  endereco: string;
-  numero: string;
-  cidade: string;
-  estado: string;
-  cep: string;
-  latitude?: number;
-  longitude?: number;
-  fotoConfirmacao?: string;
-  assinatura?: string;
-  tentativas: number;
-}
-```
-
-## 🔐 Autenticação
-
-A autenticação é feita via token JWT armazenado em `localStorage`:
-
-1. Usuário faz login com CPF e senha
-2. Backend retorna token JWT
-3. Token é armazenado em `localStorage` como `auth_token`
-4. Token é incluído em todas as requisições via header `Authorization: Bearer <token>`
-
-## 📱 Funcionalidades PWA
+- Node.js 18+
+- Expo CLI: `npm install -g expo-cli`
+- Expo Go no celular (Android/iOS) **ou** emulador
 
 ### Instalação
 
-A aplicação pode ser instalada como app nativo:
+```bash
+cd SistemaFrotaApp
+npm install
+```
 
-1. **Desktop**: Clique no ícone de instalação na barra de endereço
-2. **Mobile**: Use "Adicionar à tela inicial" no menu do navegador
-
-### Offline
-
-- Dados são sincronizados via IndexedDB
-- Requisições offline são enfileiradas
-- Sincronização automática quando conexão é restaurada
-
-### Service Worker
-
-- Caching de assets estáticos
-- Network-first para APIs
-- Background sync para dados pendentes
-
-## 🎨 Temas e Cores
-
-A aplicação usa Tailwind CSS com as seguintes cores principais:
-
-- **Primary**: `#2563eb` (Azul)
-- **Success**: `#16a34a` (Verde)
-- **Warning**: `#ea580c` (Laranja)
-- **Danger**: `#dc2626` (Vermelho)
-
-## 📊 Fluxo de Entregas
-
-1. **Pendente** - Entrega aguardando motorista
-2. **Em Andamento** - Motorista saiu para entrega
-3. **Entregue** - Entrega confirmada com foto e assinatura
-4. **Falha** - Entrega não foi realizada
-
-## 🏗️ Build
+### Executar
 
 ```bash
-# Build para produção
-pnpm build
+# Iniciar o servidor de desenvolvimento
+npx expo start
 
-# Preview do build
-pnpm preview
+# Android
+npx expo start --android
+
+# iOS
+npx expo start --ios
 ```
 
-## 📦 Deploy
+Escaneie o QR Code com o aplicativo **Expo Go** no celular.
 
-A aplicação pode ser deployada em qualquer servidor web estático:
+> **Importante:** O celular e o computador devem estar na **mesma rede Wi-Fi** para acessar o backend em `192.168.1.178`.
+
+## Build para Produção (APK Android)
 
 ```bash
-# Build
-pnpm build
+# Instalar EAS CLI
+npm install -g eas-cli
 
-# Fazer upload da pasta 'dist' para seu servidor
+# Configurar o projeto
+eas build:configure
+
+# Build APK
+eas build --platform android --profile preview
 ```
 
-### Configurações Necessárias
+## Funcionalidades
 
-1. **CORS**: Backend deve permitir requisições do domínio da aplicação
-2. **HTTPS**: PWA requer HTTPS em produção
-3. **Certificado SSL**: Necessário para PWA
-4. **Headers**: Configurar headers de cache apropriados
-
-## 🔧 Variáveis de Ambiente
-
-```env
-# API
-VITE_API_URL=http://localhost:8000/api
-
-# PWA
-VITE_APP_TITLE=App Motorista
-VITE_APP_DESCRIPTION=Sistema de Entregas
-
-# Analytics (opcional)
-VITE_ANALYTICS_ID=
-```
-
-## 🐛 Troubleshooting
-
-### Service Worker não registra
-
-- Verifique se a aplicação está em HTTPS (ou localhost)
-- Limpe o cache do navegador
-- Verifique o console para erros
-
-### GPS não funciona
-
-- Verifique permissões do navegador
-- Use HTTPS em produção
-- Teste em um dispositivo com GPS
-
-### Offline não funciona
-
-- Verifique suporte a IndexedDB
-- Limpe dados do site nos settings
-- Teste em modo privado
-
-## 📝 Licença
-
-Proprietary - Sistema de Logística
-
-## 👥 Suporte
-
-Para suporte, entre em contato com o time de desenvolvimento.
-
-## 🚀 Roadmap
-
-- [ ] Integração com Google Maps
-- [ ] Notificações push
-- [ ] Relatórios avançados
-- [ ] Integração com sistemas de pagamento
-- [ ] Suporte a múltiplos idiomas
-- [ ] Dark mode
-- [ ] Sincronização em tempo real com WebSocket
-
-## 📚 Recursos Úteis
-
-- [React Documentation](https://react.dev)
-- [Tailwind CSS](https://tailwindcss.com)
-- [Wouter Router](https://github.com/molefrog/wouter)
-- [PWA Documentation](https://web.dev/progressive-web-apps/)
-- [Geolocation API](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API)
-- [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
+- **Login** com CPF e senha (hash)
+- **Dashboard** com estatísticas de entregas e dados do motorista
+- **Lista de Entregas** com filtros por status e busca por endereço
+- **Detalhes da Entrega** com endereço completo e ações
+- **Confirmação de Entrega** com:
+  - Foto via câmera ou galeria
+  - Assinatura digital do destinatário
+  - Localização GPS automática
+- **Histórico** de entregas por data com navegação por dia
+- **Persistência local** com AsyncStorage (token e dados do motorista)
+- **Pull-to-refresh** nas telas de lista
+- **Notificações Toast** para feedback ao usuário

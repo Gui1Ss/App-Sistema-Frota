@@ -1,26 +1,41 @@
 import React from 'react';
+import { View, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
+import { COLORS } from '../utils/constants';
 
 interface CardProps {
   children: React.ReactNode;
-  className?: string;
-  onClick?: () => void;
+  style?: ViewStyle;
+  onPress?: () => void;
   hoverable?: boolean;
 }
 
-export const Card: React.FC<CardProps> = ({
-  children,
-  className = '',
-  onClick,
-  hoverable = false,
-}) => {
-  const hoverClass = hoverable ? 'hover:shadow-lg cursor-pointer transition-shadow' : '';
+const Card: React.FC<CardProps> = ({ children, style, onPress, hoverable }) => {
+  if (onPress || hoverable) {
+    return (
+      <TouchableOpacity
+        onPress={onPress}
+        style={[styles.card, style]}
+        activeOpacity={0.85}
+      >
+        {children}
+      </TouchableOpacity>
+    );
+  }
 
-  return (
-    <div
-      className={`bg-white rounded-lg shadow p-4 ${hoverClass} ${className}`}
-      onClick={onClick}
-    >
-      {children}
-    </div>
-  );
+  return <View style={[styles.card, style]}>{children}</View>;
 };
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+});
+
+export default Card;

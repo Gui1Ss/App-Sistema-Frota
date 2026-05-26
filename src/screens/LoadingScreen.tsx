@@ -2,39 +2,34 @@ import React from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { COLORS } from '../utils/constants';
 
-interface LoadingProps {
-  fullScreen?: boolean;
+interface LoadingScreenProps {
   message?: string;
 }
 
-const Loading: React.FC<LoadingProps> = ({
-  fullScreen = false,
+const LoadingScreen: React.FC<LoadingScreenProps> = ({
   message = 'Carregando...',
 }) => {
   return (
-    <View style={[styles.container, fullScreen && styles.fullScreen]}>
+    <View style={styles.container}>
       <ActivityIndicator size="large" color={COLORS.primary} />
-      {message && <Text style={styles.message}>{message}</Text>}
+      <Text style={styles.message}>{message}</Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 48,
-  },
-  fullScreen: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.9)',
+    backgroundColor: COLORS.white,
   },
   message: {
     marginTop: 16,
-    fontSize: 15,
+    fontSize: 16,
     color: COLORS.gray600,
-    textAlign: 'center',
+    fontWeight: '500',
   },
 });
 
-export default Loading;
+export default LoadingScreen;

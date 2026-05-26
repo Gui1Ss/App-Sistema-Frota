@@ -1,11 +1,25 @@
 export interface LoginRequest {
   cpf: string;
-  senha: string;
+  passwordHash: string;
 }
 
 export interface LoginResponse {
-  token: string;
-  motorista: Motorista;
+  access_token: string;
+  driver: DriverResponse;
+}
+
+export interface DriverResponse {
+  id: string;
+  name: string;
+  cpf: string;
+  phone: string;
+  email?: string;
+  licensenumber: string;
+  licenseexpiry?: string;
+  licensecategory?: string;
+  status: string;
+  createdat?: string;
+  updatedat?: string;
 }
 
 export interface Motorista {
@@ -15,12 +29,9 @@ export interface Motorista {
   cnh: string;
   telefone: string;
   email?: string;
-  endereco?: string;
-  cidade?: string;
-  estado?: string;
-  cep?: string;
+  categoria?: string;
   cnhValidade?: string;
-  status: 'ativo' | 'inativo' | 'bloqueado';
+  status: 'ativo' | 'inativo' | 'bloqueado' | string;
   criadoEm: string;
   atualizadoEm: string;
 }

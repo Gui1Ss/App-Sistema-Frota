@@ -42,11 +42,22 @@ export interface EntregaDetalhes extends Entrega {
 
 export interface ConfirmacaoEntrega {
   entregaId: string;
-  foto: File;
-  assinatura: string; // Base64
+  fotoUri: string;      // URI local da foto (React Native)
+  assinatura: string;   // Base64 da assinatura
   latitude: number;
   longitude: number;
   observacoes?: string;
+}
+
+export interface DashboardData {
+  totalEntregas: number;
+  pendentes: number;
+  emAndamento: number;
+  concluidas: number;
+  rotaAtual: {
+    id: string;
+    numero: string;
+  } | null;
 }
 
 export interface EntregasContextType {

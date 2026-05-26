@@ -1,46 +1,90 @@
-import React from 'react';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  TextInputProps,
+  ViewStyle,
+} from 'react-native';
+import { COLORS } from '../utils/constants';
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
   helperText?: string;
-  icon?: React.ReactNode;
+  containerStyle?: ViewStyle;
 }
 
-export const Input: React.FC<InputProps> = ({
+const Input: React.FC<InputProps> = ({
   label,
   error,
   helperText,
-  icon,
-  className = '',
+  containerStyle,
+  style,
   ...props
 }) => {
+  const [isFocused, setIsFocused] = useState(false);
+
   return (
-    <div className="w-full">
-      {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {label}
-        </label>
-      )}
-
-      <div className="relative">
-        {icon && <div className="absolute left-3 top-1/2 transform -translate-y-1/2">{icon}</div>}
-
-        <input
-          className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors ${
-            icon ? 'pl-10' : ''
-          } ${error ? 'border-danger' : 'border-gray-300'} ${className}`}
-          {...props}
-        />
-      </div>
-
-      {error && (
-        <p className="text-sm text-danger mt-1">{error}</p>
-      )}
-
-      {helperText && !error && (
-        <p className="text-sm text-gray-500 mt-1">{helperText}</p>
-      )}
-    </div>
+    <View style={[styles.container, containerStyle]}>
+      {label && <Text style={styles.label}>{label}</Text>}
+      <TextInput
+        style={[
+          styles.input,
+          isFocused && styles.inputFocused,
+          error ? styles.inputError : null,
+          style,
+        ]}
+        placeholderTextColor={COLORS.gray400}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        {...props}
+      />
+      {error && <Text style={styles.errorText}>{error}</Text>}
+      {helperText && !error && <Text style={styles.helperText}>{helperText}</Text>}
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    width: '100%',
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.gray700,
+    marginBottom: 6,
+  },
+  input: {
+    width: '100%',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: COLORS.gray300,
+    borderRadius: 8,
+    fontSize: 15,
+    color: COLORS.gray900,
+    backgroundColor: COLORS.white,
+  },
+  inputFocused: {
+    borderColor: COLORS.primary,
+    borderWidth: 2,
+  },
+  inputError: {
+    borderColor: COLORS.danger,
+  },
+  errorText: {
+    fontSize: 12,
+    color: COLORS.danger,
+    marginTop: 4,
+  },
+  helperText: {
+    fontSize: 12,
+    color: COLORS.gray500,
+    marginTop: 4,
+  },
+});
+
+export default Input;

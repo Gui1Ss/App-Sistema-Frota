@@ -1,26 +1,23 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Motorista, AuthContextType } from '../types/auth';
 import { apiService } from '../services/api';
 import { STORAGE_KEYS } from '../utils/constants';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [motorista, setMotorista] = useState<Motorista | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Inicializa contexto ao montar
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const savedToken = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+        const savedToken = await AsyncStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
         if (savedToken) {
           setToken(savedToken);
-          // O backend não tem /motoristas/me ainda, então vamos pegar do localStorage se disponível
-          const savedMotorista = localStorage.getItem(STORAGE_KEYS.MOTORISTA_ID);
+          const savedMotorista = await AsyncStorage.getItem(STORAGE_KEYS.MOTORISTA_DATA);
           if (savedMotorista) {
             try {
               setMotorista(JSON.parse(savedMotorista));
@@ -31,7 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       } catch (error) {
         console.error('Erro ao inicializar autenticação:', error);
-        localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+        await AsyncStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
         setToken(null);
       } finally {
         setIsLoading(false);
@@ -44,15 +41,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = async (cpf: string, passwordHash: string) => {
     setIsLoading(true);
     try {
-      // O backend espera { email, password }
-      // O app envia cpf como email (ou o usuário digita o email no campo CPF)
-      const response = await apiService.post<any>('/drivers/login', { 
-        cpf: cpf, 
-        passwordHash
+      const response = await apiService.post<any>('/drivers/login', {
+        cpf,
+        passwordHash,
       });
 
-      console.log('Resposta login:', response);
-      
       const newToken = response.access_token;
       const driverData = response.driver;
 
@@ -60,7 +53,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error('Token não recebido do servidor');
       }
 
-      // Transformar driver (backend) para motorista (frontend)
       const motoristaFormatado: Motorista = {
         id: driverData.id,
         nome: driverData.name,
@@ -72,11 +64,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         categoria: driverData.licensecategory,
         status: driverData.status,
         criadoEm: driverData.createdat || new Date().toISOString(),
-        atualizadoEm: driverData.updatedat || new Date().toISOString()
+        atualizadoEm: driverData.updatedat || new Date().toISOString(),
       };
 
-      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, newToken);
-      localStorage.setItem(STORAGE_KEYS.MOTORISTA_ID, JSON.stringify(motoristaFormatado));
+      await AsyncStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, newToken);
+      await AsyncStorage.setItem(STORAGE_KEYS.MOTORISTA_DATA, JSON.stringify(motoristaFormatado));
 
       setToken(newToken);
       setMotorista(motoristaFormatado);
@@ -88,9 +80,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.MOTORISTA_ID);
+  const logout = async () => {
+    await AsyncStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+    await AsyncStorage.removeItem(STORAGE_KEYS.MOTORISTA_DATA);
     setToken(null);
     setMotorista(null);
   };

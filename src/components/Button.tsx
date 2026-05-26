@@ -1,69 +1,137 @@
 import React from 'react';
+import {
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
+import { COLORS } from '../utils/constants';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'success';
-  size?: 'sm' | 'md' | 'lg';
-  isLoading?: boolean;
-  fullWidth?: boolean;
+type ButtonVariant = 'primary' | 'secondary' | 'success' | 'danger' | 'warning';
+type ButtonSize = 'sm' | 'md' | 'lg';
+
+interface ButtonProps {
   children: React.ReactNode;
+  onPress?: () => void;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  fullWidth?: boolean;
+  isLoading?: boolean;
+  disabled?: boolean;
+  style?: ViewStyle;
 }
 
-export const Button: React.FC<ButtonProps> = ({
+const Button: React.FC<ButtonProps> = ({
+  children,
+  onPress,
   variant = 'primary',
   size = 'md',
-  isLoading = false,
   fullWidth = false,
+  isLoading = false,
   disabled = false,
-  className = '',
-  children,
-  ...props
+  style,
 }) => {
-  const baseClasses =
-    'font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2';
+  const isDisabled = disabled || isLoading;
 
-  const variantClasses = {
-    primary: 'bg-primary text-white hover:bg-blue-600 disabled:bg-gray-400',
-    secondary:
-      'bg-gray-200 text-gray-800 hover:bg-gray-300 disabled:bg-gray-300',
-    danger: 'bg-danger text-white hover:bg-red-700 disabled:bg-gray-400',
-    success: 'bg-success text-white hover:bg-green-700 disabled:bg-gray-400',
+  const getVariantStyle = (): ViewStyle => {
+    switch (variant) {
+      case 'primary':
+        return { backgroundColor: isDisabled ? '#93C5FD' : COLORS.primary };
+      case 'secondary':
+        return {
+          backgroundColor: COLORS.white,
+          borderWidth: 1,
+          borderColor: COLORS.gray300,
+        };
+      case 'success':
+        return { backgroundColor: isDisabled ? '#6EE7B7' : COLORS.success };
+      case 'danger':
+        return { backgroundColor: isDisabled ? '#FCA5A5' : COLORS.danger };
+      case 'warning':
+        return { backgroundColor: isDisabled ? '#FCD34D' : COLORS.warning };
+      default:
+        return { backgroundColor: COLORS.primary };
+    }
   };
 
-  const sizeClasses = {
-    sm: 'px-3 py-2 text-sm',
-    md: 'px-4 py-2.5 text-base',
-    lg: 'px-6 py-3 text-lg',
+  const getTextStyle = (): TextStyle => {
+    switch (variant) {
+      case 'secondary':
+        return { color: COLORS.gray700 };
+      default:
+        return { color: COLORS.white };
+    }
   };
 
-  const widthClass = fullWidth ? 'w-full' : '';
+  const getSizeStyle = (): ViewStyle => {
+    switch (size) {
+      case 'sm':
+        return { paddingVertical: 8, paddingHorizontal: 12 };
+      case 'lg':
+        return { paddingVertical: 16, paddingHorizontal: 24 };
+      default:
+        return { paddingVertical: 12, paddingHorizontal: 16 };
+    }
+  };
 
-  const finalClassName = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${widthClass} ${className}`;
+  const getTextSizeStyle = (): TextStyle => {
+    switch (size) {
+      case 'sm':
+        return { fontSize: 13 };
+      case 'lg':
+        return { fontSize: 16 };
+      default:
+        return { fontSize: 14 };
+    }
+  };
 
   return (
-    <button
-      className={finalClassName}
-      disabled={disabled || isLoading}
-      {...props}
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={isDisabled}
+      style={[
+        styles.base,
+        getVariantStyle(),
+        getSizeStyle(),
+        fullWidth && styles.fullWidth,
+        isDisabled && styles.disabled,
+        style,
+      ]}
+      activeOpacity={0.8}
     >
-      {isLoading && (
-        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-            fill="none"
-          />
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          />
-        </svg>
+      {isLoading ? (
+        <ActivityIndicator
+          color={variant === 'secondary' ? COLORS.primary : COLORS.white}
+          size="small"
+        />
+      ) : (
+        <Text style={[styles.text, getTextStyle(), getTextSizeStyle()]}>
+          {children}
+        </Text>
       )}
-      {children}
-    </button>
+    </TouchableOpacity>
   );
 };
+
+const styles = StyleSheet.create({
+  base: {
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  fullWidth: {
+    width: '100%',
+  },
+  disabled: {
+    opacity: 0.7,
+  },
+  text: {
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+});
+
+export default Button;
