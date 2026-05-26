@@ -104,7 +104,7 @@ export const Dashboard: React.FC = () => {
 
         {/* Estatísticas */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card>
+          {/* <Card>
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-gray-600 text-sm">Total de Entregas</p>
@@ -126,7 +126,7 @@ export const Dashboard: React.FC = () => {
               </div>
               <span className="text-2xl">⏳</span>
             </div>
-          </Card>
+          </Card> */}
 
           <Card>
             <div className="flex justify-between items-start">
