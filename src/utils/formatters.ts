@@ -8,7 +8,7 @@ export const formatCPF = (cpf: string): string => {
 };
 
 /**
- * Remove formatação de CPF
+ * Remove formatação de CP
  */
 export const unformatCPF = (cpf: string): string => {
   return cpf.replace(/\D/g, '');

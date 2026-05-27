@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState } from 'react';
-import type { Entrega, EntregasContextType, ConfirmacaoEntrega } from '../types/entrega';
+import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { apiService } from '../services/api';
 import { storageService } from '../services/storage';
+import type { ConfirmacaoEntrega, Entrega, EntregasContextType } from '../types/entrega';
 import { INDEXEDDB_STORES } from '../utils/constants';
 
 const EntregasContext = createContext<EntregasContextType | undefined>(undefined);
@@ -16,13 +16,13 @@ export const EntregasProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const carregarEntregas = async (rotaId: string) => {
+  const carregarEntregas = useCallback(async (rotaId: string) => {
     setIsLoading(true);
     setError(null);
 
     try {
       const response = await apiService.get<Entrega[]>(
-        `/entregas/rota/${rotaId}`
+        `/deliveries/${rotaId}`
       );
       setEntregas(response);
 
@@ -46,60 +46,61 @@ export const EntregasProvider: React.FC<{ children: React.ReactNode }> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const selecionarEntrega = (entrega: Entrega) => {
+  const selecionarEntrega = useCallback((entrega: Entrega) => {
     setEntregaSelecionada(entrega);
-  };
+  }, []);
 
-  const atualizarStatus = async (entregaId: string, status: string) => {
-    setIsLoading(true);
-    setError(null);
+  const atualizarStatus = useCallback(
+    async (entregaId: string, status: string) => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const response = await apiService.put<Entrega>(
-        `/entregas/${entregaId}/status`,
-        { status }
-      );
+      try {
+        const response = await apiService.put<Entrega>(
+          `/entregas/${entregaId}/status`,
+          { status }
+        );
 
-      // Atualiza lista local
-      setEntregas((prev) =>
-        prev.map((e) => (e.id === entregaId ? response : e))
-      );
+        // Atualiza lista local
+        setEntregas((prev) => prev.map((e) => (e.id === entregaId ? response : e)));
 
-      // Atualiza selecionada
-      if (entregaSelecionada?.id === entregaId) {
-        setEntregaSelecionada(response);
+        // Atualiza selecionada
+        if (entregaSelecionada?.id === entregaId) {
+          setEntregaSelecionada(response);
+        }
+
+        // Salva na fila de sincronização
+        await storageService.save(INDEXEDDB_STORES.SYNC_QUEUE, {
+          id: `sync_${entregaId}_${Date.now()}`,
+          type: 'update_status',
+          entregaId,
+          status,
+          timestamp: Date.now(),
+        });
+      } catch (err: any) {
+        setError(err.message || 'Erro ao atualizar status');
+
+        // Salva na fila para sincronizar depois
+        await storageService.save(INDEXEDDB_STORES.SYNC_QUEUE, {
+          id: `sync_${entregaId}_${Date.now()}`,
+          type: 'update_status',
+          entregaId,
+          status,
+          timestamp: Date.now(),
+          pending: true,
+        });
+
+        throw err;
+      } finally {
+        setIsLoading(false);
       }
+    },
+    [entregaSelecionada]
+  );
 
-      // Salva na fila de sincronização
-      await storageService.save(INDEXEDDB_STORES.SYNC_QUEUE, {
-        id: `sync_${entregaId}_${Date.now()}`,
-        type: 'update_status',
-        entregaId,
-        status,
-        timestamp: Date.now(),
-      });
-    } catch (err: any) {
-      setError(err.message || 'Erro ao atualizar status');
-
-      // Salva na fila para sincronizar depois
-      await storageService.save(INDEXEDDB_STORES.SYNC_QUEUE, {
-        id: `sync_${entregaId}_${Date.now()}`,
-        type: 'update_status',
-        entregaId,
-        status,
-        timestamp: Date.now(),
-        pending: true,
-      });
-
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const confirmarEntrega = async (confirmacao: ConfirmacaoEntrega) => {
+  const confirmarEntrega = useCallback(async (confirmacao: ConfirmacaoEntrega) => {
     setIsLoading(true);
     setError(null);
 
@@ -114,7 +115,7 @@ export const EntregasProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       const response = await fetch(
-        `http://localhost:8000/api/entregas/${confirmacao.entregaId}/confirmar`,
+        `http://localhost:8000/api/route/${confirmacao.entregaId}/confirmar`,
         {
           method: 'POST',
           headers: {
@@ -131,9 +132,7 @@ export const EntregasProvider: React.FC<{ children: React.ReactNode }> = ({
       const data = await response.json();
 
       // Atualiza lista local
-      setEntregas((prev) =>
-        prev.map((e) => (e.id === confirmacao.entregaId ? data : e))
-      );
+      setEntregas((prev) => prev.map((e) => (e.id === confirmacao.entregaId ? data : e)));
 
       // Salva confirmação localmente
       await storageService.save(INDEXEDDB_STORES.CONFIRMACOES, {
@@ -157,9 +156,9 @@ export const EntregasProvider: React.FC<{ children: React.ReactNode }> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const value: EntregasContextType = {
+  const value: EntregasContextType = useMemo(() => ({
     entregas,
     entregaSelecionada,
     isLoading,
@@ -168,7 +167,7 @@ export const EntregasProvider: React.FC<{ children: React.ReactNode }> = ({
     selecionarEntrega,
     atualizarStatus,
     confirmarEntrega,
-  };
+  }), [entregas, entregaSelecionada, isLoading, error, carregarEntregas, selecionarEntrega, atualizarStatus, confirmarEntrega]);
 
   return (
     <EntregasContext.Provider value={value}>{children}</EntregasContext.Provider>

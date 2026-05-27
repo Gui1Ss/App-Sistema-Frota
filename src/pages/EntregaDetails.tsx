@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useParams } from 'wouter';
-import { Header } from '../components/Header';
-import { Card } from '../components/Card';
 import { Button } from '../components/Button';
+import { Card } from '../components/Card';
+import { Header } from '../components/Header';
 import { Loading } from '../components/Loading';
-import { useEntregas } from '../contexts/EntregasContext';
 import { useToast } from '../components/Toast';
+import { useEntregas } from '../contexts/EntregasContext';
 import { apiService } from '../services/api';
-import { ENTREGA_STATUS_LABELS, ENTREGA_STATUS_COLORS } from '../utils/constants';
 import type { Entrega } from '../types/entrega';
+import { ENTREGA_STATUS_COLORS, ENTREGA_STATUS_GD_COLORS, ENTREGA_STATUS_LABELS } from '../utils/constants';
 
 export const EntregaDetails: React.FC = () => {
   const [, setLocation] = useLocation();
@@ -23,29 +23,27 @@ export const EntregaDetails: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    if (!entregaSelecionada && entregaId) {
       const loadEntrega = async () => {
         try {
-          const response = await apiService.get<Entrega>(`/entregas/${entregaId}`);
+          const response = await apiService.get<Entrega>(`/delivery/${entregaId}`);
           setEntrega(response);
         } catch (error: any) {
           showToast('Erro ao carregar entrega', 'error');
-          setLocation('/entregas');
+          // setLocation('/entregas');
         } finally {
           setIsLoading(false);
         }
       };
 
       loadEntrega();
-    }
-  }, [entregaId, entregaSelecionada, setLocation, showToast]);
+  }, [entregaId]);
 
   const handleSaiuParaEntrega = async () => {
     if (!entrega) return;
 
     setIsUpdating(true);
     try {
-      await atualizarStatus(entrega.id, 'em_andamento');
+      await atualizarStatus(entrega.id, 'em_rota');
       showToast('Status atualizado para "Em Andamento"', 'success');
 
       // Envia WhatsApp (comentado por enquanto)
@@ -87,16 +85,16 @@ export const EntregaDetails: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <Header
         title="Detalhes da Entrega"
-        subtitle={`${entrega.endereco}, ${entrega.numero}`}
+        subtitle={`${entrega.address}, ${entrega.address_number}`}
       />
 
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Status */}
-        <Card className="mb-6 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200">
+        <Card className={`mb-6 bg-gradient-to-r ${ ENTREGA_STATUS_GD_COLORS[entrega.status as keyof typeof ENTREGA_STATUS_COLORS]}`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Status Atual</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
+              <p className="text-sm text-gray-600">Status Atual: <span className='font-bold text-black'>{entrega.status}</span></p>
+              <p className="text-2xl font-bold text-gray-900">
                 {ENTREGA_STATUS_LABELS[entrega.status as keyof typeof ENTREGA_STATUS_LABELS]}
               </p>
             </div>
@@ -118,33 +116,33 @@ export const EntregaDetails: React.FC = () => {
             <div className="space-y-2">
               <div>
                 <p className="text-sm text-gray-600">Rua</p>
-                <p className="text-gray-900 font-medium">{entrega.endereco}</p>
+                <p className="text-gray-900 font-medium">{entrega.address}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600">Número</p>
-                  <p className="text-gray-900 font-medium">{entrega.numero}</p>
+                  <p className="text-gray-900 font-medium">{entrega.address_number}</p>
                 </div>
-                <div>
+                {/* <div>
                   <p className="text-sm text-gray-600">Complemento</p>
                   <p className="text-gray-900 font-medium">
                     {entrega.complemento || '-'}
                   </p>
-                </div>
+                </div> */}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600">Cidade</p>
-                  <p className="text-gray-900 font-medium">{entrega.cidade}</p>
+                  <p className="text-gray-900 font-medium">{entrega.city}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Estado</p>
-                  <p className="text-gray-900 font-medium">{entrega.estado}</p>
+                  <p className="text-gray-900 font-medium">{entrega.state}</p>
                 </div>
               </div>
               <div>
                 <p className="text-sm text-gray-600">CEP</p>
-                <p className="text-gray-900 font-medium">{entrega.cep}</p>
+                <p className="text-gray-900 font-medium">{entrega.zipcode}</p>
               </div>
             </div>
           </Card>
@@ -157,14 +155,14 @@ export const EntregaDetails: React.FC = () => {
                   <p className="text-sm text-gray-600">ID</p>
                 <p className="text-gray-900 font-medium">{entrega.id}</p>
               </div>
-              <div>
+              {/* <div>
                 <p className="text-sm text-gray-600">Tentativas</p>
                 <p className="text-gray-900 font-medium">{entrega.tentativas}</p>
-              </div>
+              </div> */}
               <div>
                 <p className="text-sm text-gray-600">Criado em</p>
                 <p className="text-gray-900 font-medium">
-                  {new Date(entrega.criadoEm).toLocaleDateString('pt-BR')}
+                  {entrega.createdat ? new Date(entrega.createdat).toLocaleDateString('pt-BR') : "Data não especificada"}
                 </p>
               </div>
             </div>
@@ -184,17 +182,18 @@ export const EntregaDetails: React.FC = () => {
           <div className="space-y-3">
             {entrega.status === 'pendente' && (
               <Button
-                variant="primary"
+                variant="secondary"
                 size="lg"
                 fullWidth
                 isLoading={isUpdating}
                 onClick={handleSaiuParaEntrega}
+                
               >
                 🚗 Saiu para Entrega
               </Button>
             )}
 
-            {entrega.status === 'em_andamento' && (
+            {entrega.status === 'em_rota' && (
               <Button
                 variant="success"
                 size="lg"

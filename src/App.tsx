@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { Router, Route, useLocation } from 'wouter';
+import { Route, Router, useLocation, useRoute } from 'wouter';
+import { ToastContainer } from './components/Toast';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { EntregasProvider } from './contexts/EntregasContext';
-import { ToastContainer } from './components/Toast';
 import { storageService } from './services/storage';
 
 // Pages
-import { Login } from './pages/Login';
-import { Dashboard } from './pages/Dashboard';
-import { EntregasList } from './pages/EntregasList';
-import { EntregaDetails } from './pages/EntregaDetails';
 import { ConfirmacaoEntrega } from './pages/ConfirmacaoEntrega';
+import { Dashboard } from './pages/Dashboard';
+import { EntregaDetails } from './pages/EntregaDetails';
+import { EntregasList } from './pages/EntregasList';
 import { Historico } from './pages/Historico';
+import { Login } from './pages/Login';
 
 // Loading screen
 const LoadingScreen: React.FC = () => (
@@ -32,6 +32,26 @@ const NotFound: React.FC = () => (
     </div>
   </div>
 );
+
+// Renderiza 404 somente quando nenhuma rota conhecida casar
+const NotFoundRoute: React.FC = () => {
+  const [, location] = useLocation();
+
+  // verifica se alguma rota conhecida casa com a URL atual
+  const [isDashboard] = useRoute('/dashboard');
+  const [isEntregas] = useRoute('/entregas');
+  const [isEntregaId] = useRoute('/entregas/:id');
+  const [isConfirm] = useRoute('/confirmar/:id');
+  const [isHistorico] = useRoute('/historico');
+  const [isLogin] = useRoute('/login');
+
+  if (isDashboard || isEntregas || isEntregaId || isConfirm || isHistorico || isLogin) {
+    return null;
+  }
+
+  // Se estiver em qualquer outra rota, mostra NotFound
+  return <NotFound />;
+};
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -57,7 +77,6 @@ const AppContent: React.FC = () => {
     return (
       <>
         <Route path="/login" component={Login} />
-        <Route path="*" component={Login} />
       </>
     );
   }
@@ -70,8 +89,8 @@ const AppContent: React.FC = () => {
       <Route path="/entregas/:id" component={EntregaDetails} />
       <Route path="/confirmar/:id" component={ConfirmacaoEntrega} />
       <Route path="/historico" component={Historico} />
-      <Route path="/" component={Dashboard} />
-      <Route path="*" component={NotFound} />
+      {/* <Route path="/" component={Dashboard} /> */}
+      <NotFoundRoute />
     </>
   );
 };

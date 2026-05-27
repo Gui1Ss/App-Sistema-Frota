@@ -141,7 +141,7 @@ interface Entrega {
   id: string;
   rotaId: string;
   pedidoId: string;
-  status: 'pendente' | 'em_andamento' | 'entregue' | 'falha';
+  status: 'pendente' | 'em_rota' | 'entregue' | 'falha';
   endereco: string;
   numero: string;
   cidade: string;

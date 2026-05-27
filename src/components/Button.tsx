@@ -22,11 +22,11 @@ export const Button: React.FC<ButtonProps> = ({
     'font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2';
 
   const variantClasses = {
-    primary: 'bg-primary text-white hover:bg-blue-600 disabled:bg-gray-400',
+    primary: 'bg-primary text-blue-600 border-3 border-blue-600 hover:bg-blue-600 disabled:bg-gray-400',
     secondary:
-      'bg-gray-200 text-gray-800 hover:bg-gray-300 disabled:bg-gray-300',
-    danger: 'bg-danger text-white hover:bg-red-700 disabled:bg-gray-400',
-    success: 'bg-success text-white hover:bg-green-700 disabled:bg-gray-400',
+      'bg-gray-200 text-gray-800 hover:bg-gray-400 disabled:bg-gray-300',
+    danger: 'bg-transparent border-3 border-red-500 text-black hover:bg-red-500 hover:text-white disabled:bg-gray-400',
+    success: 'bg-success text-green-700 font-bold border-5 border-green-700 hover:bg-green-700 hover:text-white disabled:bg-gray-400',
   };
 
   const sizeClasses = {

@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
-import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
-import { validateLoginForm } from '../utils/validators';
+import { useAuth } from '../contexts/AuthContext';
 import { formatCPF } from '../utils/formatters';
 
 export const Login: React.FC = () => {
@@ -56,7 +55,7 @@ export const Login: React.FC = () => {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
+          <div className="inline-flex items-center justify-center w-13 h-13 bg-blue-600 rounded-full mb-4">
             <svg
               className="w-8 h-8 text-white"
               fill="none"
@@ -71,7 +70,7 @@ export const Login: React.FC = () => {
               />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">App Motorista</h1>
+          <h1 className="text-2xl font-bold text-gray-900">App Motorista</h1>
           <p className="text-gray-600 mt-2">Sistema de Entregas</p>
         </div>
 

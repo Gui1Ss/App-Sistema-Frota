@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
-import { Header } from '../components/Header';
-import { Card } from '../components/Card';
 import { Button } from '../components/Button';
+import { Card } from '../components/Card';
+import { Header } from '../components/Header';
 import { Loading } from '../components/Loading';
+import { useAuth } from '../contexts/AuthContext';
 import { apiService } from '../services/api';
-import { formatDate } from '../utils/formatters';
 import type { Entrega } from '../types/entrega';
 
 export const Historico: React.FC = () => {
   const [, setLocation] = useLocation();
-
+  const { motorista } = useAuth();
   const [entregas, setEntregas] = useState<Entrega[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filtroData, setFiltroData] = useState(new Date().toISOString().split('T')[0]);
@@ -19,8 +19,9 @@ export const Historico: React.FC = () => {
     const loadHistorico = async () => {
       try {
         setIsLoading(true);
+        console.log(filtroData)
         const response = await apiService.get<Entrega[]>(
-          `/entregas?status=entregue&data=${filtroData}`
+          `/deliveries/finish/${motorista?.cpf}/${filtroData}`
         );
         setEntregas(response);
       } catch (error: any) {
@@ -74,14 +75,17 @@ export const Historico: React.FC = () => {
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900 mb-2">
-                      {entrega.endereco}, {entrega.numero}
+                      #{entrega.id} - {entrega.address}
                     </h3>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Pedido #{entrega.ordernumber}
+                    </h4>
                     <p className="text-sm text-gray-600 mb-3">
-                      {entrega.cidade}, {entrega.estado} - {entrega.cep}
+                      {entrega.city}, {entrega.state} - {entrega.zipcode}
                     </p>
 
                     {/* Fotos e Assinatura */}
-                    {(entrega.fotoConfirmacao || entrega.assinatura) && (
+                    {/* {(entrega.fotoConfirmacao || entrega.assinatura) && (
                       <div className="grid grid-cols-2 gap-4 mt-4">
                         {entrega.fotoConfirmacao && (
                           <div>
@@ -104,10 +108,10 @@ export const Historico: React.FC = () => {
                           </div>
                         )}
                       </div>
-                    )}
+                    )} */}
 
                     {/* Informações */}
-                    <div className="mt-4 pt-4 border-t border-gray-200 text-sm text-gray-600">
+                    {/* <div className="mt-4 pt-4 border-t border-gray-200 text-sm text-gray-600">
                       <p>
                         Entregue em:{' '}
                         <span className="font-medium">
@@ -116,7 +120,7 @@ export const Historico: React.FC = () => {
                             : 'N/A'}
                         </span>
                       </p>
-                    </div>
+                    </div> */}
                   </div>
 
                   <span className="text-2xl ml-4">✓</span>
@@ -128,7 +132,7 @@ export const Historico: React.FC = () => {
 
         {/* Estatísticas */}
         {entregas.length > 0 && (
-          <Card className="mt-6 bg-gradient-to-r from-success to-green-600 text-white">
+          <Card className="mt-6 bg-gradient-to-r from-cyan-400 to-green-600 text-white">
             <div className="text-center">
               <p className="text-green-100">Total de Entregas Concluídas</p>
               <p className="text-4xl font-bold mt-2">{entregas.length}</p>

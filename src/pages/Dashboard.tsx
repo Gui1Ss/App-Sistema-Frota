@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
-import { Header } from '../components/Header';
-import { Card } from '../components/Card';
 import { Button } from '../components/Button';
-import { Loading } from '../components/Loading';
+import { Card } from '../components/Card';
+import { Header } from '../components/Header';
 import { useAuth } from '../contexts/AuthContext';
 import { useEntregas } from '../contexts/EntregasContext';
 import { apiService } from '../services/api';
@@ -15,8 +14,7 @@ interface DashboardData {
   concluidas: number;
   rotaAtual: {
     id: string;
-    numero: string;
-    dataInicio: string;
+    createdat: string;
   } | null;
 }
 
@@ -33,7 +31,7 @@ export const Dashboard: React.FC = () => {
     const loadDashboard = async () => {
       try {
         setIsLoading(true);
-        const response = await apiService.get<DashboardData>('/drivers');
+        const response = await apiService.get<DashboardData>(`/app/dashboard/${motorista?.cpf}`);
         setData(response);
 
         // Carrega entregas da rota atual
@@ -63,9 +61,9 @@ export const Dashboard: React.FC = () => {
     setLocation('/login');
   };
 
-  if (isLoading) {
-    return <Loading fullScreen message="Carregando dashboard..." />;
-  }
+  // if (isLoading) {
+  //   return <Loading fullScreen message="Carregando dashboard..." />;
+  // }
 
   if (error) {
     return (
@@ -91,11 +89,11 @@ export const Dashboard: React.FC = () => {
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Rota Atual */}
         {data?.rotaAtual && (
-          <Card className="mb-6 bg-gradient-to-r from-primary to-blue-600 text-white">
+          <Card className="mb-6 bg-gradient-to-tr from-blue-600 to-cyan-600 to-80% text-white">
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="text-lg font-semibold mb-2">Rota do Dia</h3>
-                <p className="text-blue-100">Rota #{data.rotaAtual.numero}</p>
+                <p className="text-blue-100">Rota #{data.rotaAtual.id}</p>
               </div>
               <span className="text-3xl">📍</span>
             </div>
@@ -103,7 +101,7 @@ export const Dashboard: React.FC = () => {
         )}
 
         {/* Estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
           {/* <Card>
             <div className="flex justify-between items-start">
               <div>
@@ -154,13 +152,14 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Ações Rápidas */}
-        <Card className="mb-8">
+        <Card className="mb-4">
           <h3 className="text-lg font-semibold mb-4">Ações Rápidas</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Button
-              variant="primary"
+              variant="secondary"
               size="lg"
               fullWidth
+              
               onClick={() => setLocation('/entregas')}
             >
               📋 Ver Entregas
@@ -175,13 +174,13 @@ export const Dashboard: React.FC = () => {
             </Button>
           </div>
         </Card>
-
-        {/* Logout */}
         <div className="flex justify-end">
-          <Button variant="danger" onClick={handleLogout}>
+          <Button variant="danger" className='w-full mt-10' onClick={handleLogout}>
             Sair
           </Button>
         </div>
+        {/* Logout */}
+        
       </main>
     </div>
   );

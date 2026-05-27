@@ -9,7 +9,7 @@ const getApiUrl = () => {
 };
 
 // export const API_BASE_URL = getApiUrl( );
-export const API_BASE_URL = 'http://192.168.1.172:8000';
+export const API_BASE_URL = 'http://localhost:8001';
 export const API_TIMEOUT = 30000; // 30 segundos
 
 // Storage Keys
@@ -32,23 +32,30 @@ export const INDEXEDDB_STORES = {
 // Status de Entrega
 export const ENTREGA_STATUS = {
   PENDENTE: 'pendente',
-  EM_ANDAMENTO: 'em_andamento',
+  em_rota: 'em_rota',
   ENTREGUE: 'entregue',
   FALHA: 'falha',
 };
 
 export const ENTREGA_STATUS_LABELS = {
   pendente: 'Pendente',
-  em_andamento: 'Em Andamento',
+  em_rota: 'Em Andamento',
   entregue: 'Entregue',
   falha: 'Falha na Entrega',
 };
 
 export const ENTREGA_STATUS_COLORS = {
   pendente: 'bg-gray-100 text-gray-800',
-  em_andamento: 'bg-blue-100 text-blue-800',
+  em_rota: 'bg-blue-100 text-blue-800',
   entregue: 'bg-green-100 text-green-800',
   falha: 'bg-red-100 text-red-800',
+}
+
+export const ENTREGA_STATUS_GD_COLORS = {
+  pendente: 'from-gray-100 to-gray-200 border border-gray-200',
+  em_rota: 'from-blue-100 to-blue-200 border border-blue-200',
+  entregue: 'from-green-100 to-green-200 border border-green-200',
+  falha: 'from-red-100 to-red-200 border border-red-200',
 };
 
 // GPS

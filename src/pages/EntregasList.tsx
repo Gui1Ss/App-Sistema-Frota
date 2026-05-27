@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
-import { Header } from '../components/Header';
-import { Card } from '../components/Card';
 import { Button } from '../components/Button';
+import { Card } from '../components/Card';
+import { Header } from '../components/Header';
 import { Input } from '../components/Input';
 import { Loading } from '../components/Loading';
-import { useEntregas } from '../contexts/EntregasContext';
 import { useAuth } from '../contexts/AuthContext';
-import { ENTREGA_STATUS_LABELS, ENTREGA_STATUS_COLORS } from '../utils/constants';
+import { useEntregas } from '../contexts/EntregasContext';
 import type { Entrega } from '../types/entrega';
+import { ENTREGA_STATUS_COLORS, ENTREGA_STATUS_LABELS } from '../utils/constants';
 
 export const EntregasList: React.FC = () => {
   const [, setLocation] = useLocation();
@@ -22,7 +22,7 @@ export const EntregasList: React.FC = () => {
   useEffect(() => {
     // Carrega entregas da rota do motorista
     if (motorista?.id) {
-      carregarEntregas(motorista.id);
+      carregarEntregas(motorista.cpf);
     }
   }, [motorista?.id, carregarEntregas]);
 
@@ -39,8 +39,8 @@ export const EntregasList: React.FC = () => {
       const termo = filtro.toLowerCase();
       filtered = filtered.filter(
         (e) =>
-          e.endereco?.toLowerCase().includes(termo) ||
-          e.cidade?.toLowerCase().includes(termo)
+          e.address?.toLowerCase().includes(termo) ||
+          e.city?.toLowerCase().includes(termo)
       );
     }
 
@@ -87,11 +87,11 @@ export const EntregasList: React.FC = () => {
                 Pendentes ({entregas.filter((e) => e.status === 'pendente').length})
               </Button>
               <Button
-                variant={statusFiltro === 'em_andamento' ? 'primary' : 'secondary'}
+                variant={statusFiltro === 'em_rota' ? 'primary' : 'secondary'}
                 size="sm"
-                onClick={() => setStatusFiltro('em_andamento')}
+                onClick={() => setStatusFiltro('em_rota')}
               >
-                Em Andamento ({entregas.filter((e) => e.status === 'em_andamento').length})
+                Em Andamento ({entregas.filter((e) => e.status === 'em_rota').length})
               </Button>
               <Button
                 variant={statusFiltro === 'entregue' ? 'primary' : 'secondary'}
@@ -117,28 +117,25 @@ export const EntregasList: React.FC = () => {
                 hoverable
                 onClick={() => handleSelectEntrega(entrega)}
               >
-                <div className="flex justify-between items-start">
+                <div className="flex justify-center items-start">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="font-semibold text-gray-900">
-                        {entrega.endereco}, {entrega.numero}
+                        {entrega.address}, {entrega.address_number}
                       </h3>
                       <span
-                        className={`text-xs px-2 py-1 rounded-full ${
+                        className={`text-xs text-nowrap px-2 py-1 rounded-full ${
                           ENTREGA_STATUS_COLORS[entrega.status as keyof typeof ENTREGA_STATUS_COLORS]
                         }`}
                       >
                         {ENTREGA_STATUS_LABELS[entrega.status as keyof typeof ENTREGA_STATUS_LABELS]}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600">
-                      {entrega.cidade}, {entrega.estado} - {entrega.cep}
+                    <p className="text-sm text-gray-600 ml-1">
+                      {entrega.city}, {entrega.state} - {entrega.zipcode}
                     </p>
-                    {entrega.complemento && (
-                      <p className="text-sm text-gray-500 mt-1">{entrega.complemento}</p>
-                    )}
                   </div>
-                  <span className="text-2xl ml-4">→</span>
+                  <span className="text-2xl ml-4 mb-10">→</span>
                 </div>
               </Card>
             ))}
