@@ -24,13 +24,10 @@ export const Dashboard: React.FC = () => {
   const { carregarEntregas } = useEntregas();
 
   const [data, setData] = useState<DashboardData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadDashboard = async () => {
       try {
-        setIsLoading(true);
         const response = await apiService.get<DashboardData>(`/app/dashboard/${motorista?.cpf}`);
         setData(response);
 
@@ -48,8 +45,6 @@ export const Dashboard: React.FC = () => {
           concluidas: 0,
           rotaAtual: null
         });
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -65,18 +60,7 @@ export const Dashboard: React.FC = () => {
   //   return <Loading fullScreen message="Carregando dashboard..." />;
   // }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card>
-          <div className="text-center">
-            <p className="text-danger mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()}>Tentar Novamente</Button>
-          </div>
-        </Card>
-      </div>
-    );
-  }
+  
 
   return (
     <div className="min-h-screen bg-gray-50">

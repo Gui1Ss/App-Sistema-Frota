@@ -20,6 +20,7 @@ export interface Motorista {
   estado?: string;
   cep?: string;
   cnhValidade?: string;
+  categoria?: string;
   status: 'ativo' | 'inativo' | 'bloqueado';
   criadoEm: string;
   atualizadoEm: string;

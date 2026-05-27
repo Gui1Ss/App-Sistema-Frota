@@ -35,7 +35,6 @@ const NotFound: React.FC = () => (
 
 // Renderiza 404 somente quando nenhuma rota conhecida casar
 const NotFoundRoute: React.FC = () => {
-  const [, location] = useLocation();
 
   // verifica se alguma rota conhecida casa com a URL atual
   const [isDashboard] = useRoute('/dashboard');

@@ -4,22 +4,30 @@ export interface Entrega {
   ordernumber: string;
   clientname: string;
   driver_name: string;
-  vehicle_anem: string;
-  status: 'pendente' | 'em_rota' | 'entregue' | 'falha';
-  address: string;
-  address_number: string;
-  city: string;
-  state: string;
-  zipcode: string;
+  vehicle_anem?: string;
+  status: 'pendente' | 'em_andamento' | 'em_rota' | 'entregue' | 'falha';
+  address?: string;
+  address_number?: string;
+  city?: string;
+  state?: string;
+  zipcode?: string;
   latitude?: number;
   longitude?: number;
-  // observacoes?: string;
-  // fotoConfirmacao?: string;
-  // assinatura?: string;
-  // tentativas: number;
-  // dataEntrega?: string;
+  // campos alternativos/alias em português (opcionais)
+  endereco?: string;
+  numero?: string;
+  complemento?: string;
+  cidade?: string;
+  estado?: string;
+  cep?: string;
+  observacoes?: string;
+  tentativas?: number;
+  criadoEm?: string;
+  criado_at?: string;
+  criadoAt?: string;
+  criadoEm_iso?: string;
   createdat?: string;
-  // atualizadoEm: string;
+  atualizadoEm?: string;
 }
 
 export interface EntregaDetalhes extends Entrega {
