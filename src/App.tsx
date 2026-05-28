@@ -37,6 +37,7 @@ const NotFound: React.FC = () => (
 const NotFoundRoute: React.FC = () => {
 
   // verifica se alguma rota conhecida casa com a URL atual
+  const [isHome] = useRoute('/');
   const [isDashboard] = useRoute('/dashboard');
   const [isEntregas] = useRoute('/entregas');
   const [isEntregaId] = useRoute('/entregas/:id');
@@ -44,12 +45,24 @@ const NotFoundRoute: React.FC = () => {
   const [isHistorico] = useRoute('/historico');
   const [isLogin] = useRoute('/login');
 
-  if (isDashboard || isEntregas || isEntregaId || isConfirm || isHistorico || isLogin) {
+  if (isHome || isDashboard || isEntregas || isEntregaId || isConfirm || isHistorico || isLogin) {
     return null;
   }
 
   // Se estiver em qualquer outra rota, mostra NotFound
   return <NotFound />;
+};
+
+const Home: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    // Redireciona para dashboard se autenticado, senão para login
+    setLocation(isAuthenticated ? '/dashboard' : '/login');
+  }, [isAuthenticated, setLocation]);
+
+  return null;
 };
 
 const AppContent: React.FC = () => {
@@ -75,6 +88,7 @@ const AppContent: React.FC = () => {
   if (!isAuthenticated) {
     return (
       <>
+        <Route path="/" component={Home} />
         <Route path="/login" component={Login} />
       </>
     );
@@ -83,6 +97,7 @@ const AppContent: React.FC = () => {
   // Se autenticado, mostra todas as rotas
   return (
     <>
+      <Route path="/" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/entregas" component={EntregasList} />
       <Route path="/entregas/:id" component={EntregaDetails} />
@@ -121,11 +136,13 @@ function App() {
   useEffect(() => {
     const initStorage = async () => {
       try {
-        await storageService.init();
-        setStorageReady(true);
+        await Promise.race([
+          storageService.init(),
+          new Promise<void>((resolve) => setTimeout(resolve, 5000)),
+        ]);
       } catch (error) {
         console.error('Erro ao inicializar storage:', error);
-        // Continua mesmo com erro de storage
+      } finally {
         setStorageReady(true);
       }
     };

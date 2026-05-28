@@ -1,5 +1,5 @@
 // API
-export const API_BASE_URL = 'http://localhost:8001';
+export const API_BASE_URL = 'http://192.168.1.178:8001';
 export const API_TIMEOUT = 30000; // 30 segundos
 
 // Storage Keys
@@ -39,7 +39,7 @@ export const ENTREGA_STATUS_COLORS = {
   em_rota: 'bg-blue-100 text-blue-800',
   entregue: 'bg-green-100 text-green-800',
   falha: 'bg-red-100 text-red-800',
-}
+};
 
 export const ENTREGA_STATUS_GD_COLORS = {
   pendente: 'from-gray-100 to-gray-200 border border-gray-200',

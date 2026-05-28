@@ -6,6 +6,7 @@ import { Header } from '../components/Header';
 import { useAuth } from '../contexts/AuthContext';
 import { useEntregas } from '../contexts/EntregasContext';
 import { apiService } from '../services/api';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera'
 
 interface DashboardData {
   totalEntregas: number;
@@ -22,8 +23,8 @@ export const Dashboard: React.FC = () => {
   const [, setLocation] = useLocation();
   const { motorista, logout } = useAuth();
   const { carregarEntregas } = useEntregas();
-
   const [data, setData] = useState<DashboardData | null>(null);
+  // const [foto, setFoto] = useState(null)
 
   useEffect(() => {
     const loadDashboard = async () => {
@@ -45,11 +46,31 @@ export const Dashboard: React.FC = () => {
           concluidas: 0,
           rotaAtual: null
         });
+        
+
       }
+      // try {
+      
     };
 
     loadDashboard();
   }, []);
+
+  async function abrirCamera() {
+    try {
+      const image = await Camera.getPhoto({
+        quality: 90,
+        resultType: CameraResultType.DataUrl,
+        allowEditing: false,
+        source: CameraSource.Camera
+      })
+
+      console.log(image)
+      // setFoto(image.dataUrl)
+    } catch (erro) {
+      console.log(erro)
+    }
+  }
 
   const handleLogout = () => {
     logout();
@@ -161,6 +182,9 @@ export const Dashboard: React.FC = () => {
         <div className="flex justify-end">
           <Button variant="danger" className='w-full mt-10' onClick={handleLogout}>
             Sair
+          </Button>
+          <Button variant="danger" className='w-full mt-10' onClick={abrirCamera}>
+            Camera
           </Button>
         </div>
         {/* Logout */}

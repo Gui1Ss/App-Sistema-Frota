@@ -9,9 +9,26 @@ class StorageService {
   async init(): Promise<void> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(INDEXEDDB_NAME, INDEXEDDB_VERSION);
+      const timeoutId = window.setTimeout(() => {
+        request.onerror = null;
+        request.onsuccess = null;
+        request.onblocked = null;
+        request.onupgradeneeded = null;
+        reject(new Error('IndexedDB initialization timed out'));
+      }, 5000);
 
-      request.onerror = () => reject(request.error);
+      request.onerror = () => {
+        window.clearTimeout(timeoutId);
+        reject(request.error || new Error('Erro ao abrir IndexedDB'));
+      };
+
+      request.onblocked = () => {
+        window.clearTimeout(timeoutId);
+        reject(new Error('IndexedDB blocked by another connection'));
+      };
+
       request.onsuccess = () => {
+        window.clearTimeout(timeoutId);
         this.db = request.result;
         resolve();
       };

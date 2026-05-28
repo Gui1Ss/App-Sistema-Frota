@@ -46,6 +46,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       // O backend espera { email, password }
       // O app envia cpf como email (ou o usuário digita o email no campo CPF)
+      
+      // console.log("TESTANDO FETCH DIRETO");
+      
+      // const teste = await fetch('http://192.168.1.178:8001/docs');
+
+      // console.log("FETCH DIRETO STATUS: CU: ", teste.status);
+
       const response = await apiService.post<any>('/drivers/login', { 
         cpf: cpf, 
         passwordHash
