@@ -6,7 +6,7 @@ import { Header } from '../components/Header';
 import { useAuth } from '../contexts/AuthContext';
 import { useEntregas } from '../contexts/EntregasContext';
 import { apiService } from '../services/api';
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera'
+import { Camera } from '@capacitor/camera'
 
 interface DashboardData {
   totalEntregas: number;
@@ -57,20 +57,29 @@ export const Dashboard: React.FC = () => {
   }, []);
 
   async function abrirCamera() {
-    try {
-      const image = await Camera.getPhoto({
-        quality: 90,
-        resultType: CameraResultType.DataUrl,
-        allowEditing: false,
-        source: CameraSource.Camera
-      })
+      try {
+    const result = await Camera.takePhoto({
+      quality: 90,
+      includeMetadata: true,
+    });
 
-      console.log(image)
-      // setFoto(image.dataUrl)
-    } catch (erro) {
-      console.log(erro)
-    }
+    // result.webPath can be set directly as the src of an image element
+    const ImagePath = result.webPath;
+    console.log(ImagePath)
+    // On native: pass result.uri to the Filesystem API to get the full-resolution base64,
+    // or use result.thumbnail for a lower-resolution base64 preview.
+    // On Web: result.thumbnail contains the full image base64 encoded.
+
+    console.log('Format:', result.metadata?.format);
+    console.log('Resolution:', result.metadata?.resolution);
+  } catch (e) {
+    const error = e as any;
+    // error.code contains the structured error code (e.g. 'OS-PLUG-CAMR-0003')
+    // when thrown by the native layer. See the Errors section for all codes.
+    const message = error.code ? `[${error.code}] ${error.message}` : error.message;
+    console.error('takePhoto failed:', message);
   }
+  };
 
   const handleLogout = () => {
     logout();
