@@ -180,7 +180,7 @@ export const EntregaDetails: React.FC = () => {
         {/* Ações */}
         <Card>
           <div className="space-y-3">
-            {entrega.status === 'pendente' && (
+            {entrega.status === 'pending' && (
               <Button
                 variant="secondary"
                 size="lg"
@@ -193,7 +193,7 @@ export const EntregaDetails: React.FC = () => {
               </Button>
             )}
 
-            {entrega.status === 'em_rota' && (
+            {entrega.status === 'in_progress' && (
               <Button
                 variant="success"
                 size="lg"

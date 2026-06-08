@@ -5,15 +5,48 @@ import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 // import { Loading } from '../components/Loading';
 import { useEntregas } from '../contexts/EntregasContext';
-import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
+import { BarcodeFormat, BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
+// import { apiService } from '../services/api';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Preferences } from '@capacitor/preferences';
+import { Toast } from '@capacitor/toast';
 // import { useToast } from '../components/Toast';
 // import { gpsService } from '../services/gps';
 // import type { GPSPosition } from '../services/gps';
 
 export const ConfirmacaoEntrega: React.FC = () => {
+  console.log("MONTADO")
   const [, setLocation] = useLocation();
   const { entregaSelecionada } = useEntregas();
   const [codigoLido, setCodigoLido] = useState('');
+  // const [caminhoFoto, setCaminhoFoto] = useState < MediaResult >()
+
+  // async function abrirCamera() {
+  //   try {
+  //     const result = await Camera.takePhoto({
+  //       quality: 90,
+  //       includeMetadata: true,
+  //     });
+
+  //     // result.webPath can be set directly as the src of an image element
+  //     const ImagePath = result.webPath;
+  //     console.log(ImagePath)
+  //     // On native: pass result.uri to the Filesystem API to get the full-resolution base64,
+  //     // or use result.thumbnail for a lower-resolution base64 preview.
+  //     // On Web: result.thumbnail contains the full image base64 encoded.
+
+  //     console.log('Format:', result.metadata?.format);
+  //     console.log('Resolution:', result.metadata?.resolution);
+
+  //     setCaminhoFoto(result)
+  //   } catch (e) {
+  //     const error = e as any;
+  //     // error.code contains the structured error code (e.g. 'OS-PLUG-CAMR-0003')
+  //     // when thrown by the native layer. See the Errors section for all codes.
+  //     const message = error.code ? `[${error.code}] ${error.message}` : error.message;
+  //     console.error('takePhoto failed:', message);
+  //   }
+  // };
 
   const abrirScanner = async () => {
   try {
@@ -24,19 +57,73 @@ export const ConfirmacaoEntrega: React.FC = () => {
       return;
     }
 
-    const result = await BarcodeScanner.scan();
+    const result = await BarcodeScanner.scan({
+      formats: [
+        BarcodeFormat.Code128,
+        BarcodeFormat.Code39
+      ]
+    });
 
     if (result.barcodes.length > 0) {
-      const codigo = result.barcodes[0].displayValue || '';
-      setCodigoLido(codigo);
+      const codigo = result.barcodes[0].displayValue ?? '';
+      // setCodigoLido(codigo);
 
-      alert(`Código lido: ${codigo}`);
+      if (codigo.length === 44) {
+        console.log('Chave NF-e válida');   
+        
+        alert(`Código lido: ${codigo}`);
+        setCodigoLido(codigo)
+
+        await Preferences.set({
+          key: 'codigoEntrega',
+          value: codigo
+        });
+
+        const photo = await Camera.getPhoto({
+          quality: 90,
+          allowEditing: false,
+          resultType: CameraResultType.Uri,
+          source: CameraSource.Camera,
+        });
+        console.log(photo)
+      }else {
+
+      }
+      
+      // Carrega entregas da rota atual
+      // if () {
+      //   await carregarEntregas(response.rotaAtual.id);
+      // }
+    }else{
+      await Toast.show({
+        text: 'Código inválido. Escaneie novamente.'
+      });
+      return;
     }
   } catch (error) {
     console.error(error);
     alert('Erro ao abrir scanner');
+    console.log("ERRO! DFEBUUG DO CÓDIGO, ERRO NA REQUISIÇÃO "+error)
   }
-};
+}
+  //   try {
+  //     console.log("ANTES DA FOTO");
+
+  //     const photo = await Camera.getPhoto({
+  //       quality: 30,
+  //       width: 1024,
+  //       height: 1024,
+  //       allowEditing: false,
+  //       resultType: CameraResultType.Uri,
+  //       source: CameraSource.Camera,
+  //     });
+
+  //     console.log("DEPOIS DA FOTO");
+  //     console.log(photo);
+  //     } catch (e) {
+  //     console.error(e);
+  //     }
+  // };
   // const { show: showToast } = useToast();
 
   // const canvasRef = useRef<HTMLCanvasElement>(null);

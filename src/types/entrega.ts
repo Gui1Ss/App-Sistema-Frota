@@ -5,7 +5,7 @@ export interface Entrega {
   clientname: string;
   driver_name: string;
   vehicle_anem?: string;
-  status: 'pendente' | 'em_andamento' | 'em_rota' | 'entregue' | 'falha';
+  status: 'pending' | 'in_progress' | 'entregue' | 'falha';
   address?: string;
   address_number?: string;
   city?: string;

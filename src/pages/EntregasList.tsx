@@ -84,14 +84,14 @@ export const EntregasList: React.FC = () => {
                 size="sm"
                 onClick={() => setStatusFiltro('pendente')}
               >
-                Pendentes ({entregas.filter((e) => e.status === 'pendente').length})
+                Pendentes ({entregas.filter((e) => e.status === 'pending').length})
               </Button>
               <Button
                 variant={statusFiltro === 'em_rota' ? 'primary' : 'secondary'}
                 size="sm"
                 onClick={() => setStatusFiltro('em_rota')}
               >
-                Em Andamento ({entregas.filter((e) => e.status === 'em_rota').length})
+                Em Andamento ({entregas.filter((e) => e.status === 'in_progress').length})
               </Button>
               <Button
                 variant={statusFiltro === 'entregue' ? 'primary' : 'secondary'}

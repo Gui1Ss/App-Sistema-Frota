@@ -57,28 +57,30 @@ export const Dashboard: React.FC = () => {
   }, []);
 
   async function abrirCamera() {
-      try {
-    const result = await Camera.takePhoto({
-      quality: 90,
-      includeMetadata: true,
-    });
+    try {
+      const result = await Camera.takePhoto({
+        quality: 90,
+        includeMetadata: true,
+      });
 
-    // result.webPath can be set directly as the src of an image element
-    const ImagePath = result.webPath;
-    console.log(ImagePath)
-    // On native: pass result.uri to the Filesystem API to get the full-resolution base64,
-    // or use result.thumbnail for a lower-resolution base64 preview.
-    // On Web: result.thumbnail contains the full image base64 encoded.
+      // result.webPath can be set directly as the src of an image element
+      const ImagePath = result.webPath;
+      console.log(ImagePath)
+      // On native: pass result.uri to the Filesystem API to get the full-resolution base64,
+      // or use result.thumbnail for a lower-resolution base64 preview.
+      // On Web: result.thumbnail contains the full image base64 encoded.
 
-    console.log('Format:', result.metadata?.format);
-    console.log('Resolution:', result.metadata?.resolution);
-  } catch (e) {
-    const error = e as any;
-    // error.code contains the structured error code (e.g. 'OS-PLUG-CAMR-0003')
-    // when thrown by the native layer. See the Errors section for all codes.
-    const message = error.code ? `[${error.code}] ${error.message}` : error.message;
-    console.error('takePhoto failed:', message);
-  }
+      console.log('Format:', result.metadata?.format);
+      console.log('Resolution:', result.metadata?.resolution);
+
+      
+    } catch (e) {
+      const error = e as any;
+      // error.code contains the structured error code (e.g. 'OS-PLUG-CAMR-0003')
+      // when thrown by the native layer. See the Errors section for all codes.
+      const message = error.code ? `[${error.code}] ${error.message}` : error.message;
+      console.error('takePhoto failed:', message);
+    }
   };
 
   const handleLogout = () => {

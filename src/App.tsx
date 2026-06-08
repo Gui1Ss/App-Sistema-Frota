@@ -4,7 +4,7 @@ import { ToastContainer } from './components/Toast';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { EntregasProvider } from './contexts/EntregasContext';
 import { storageService } from './services/storage';
-
+import { App as CapacitorApp } from '@capacitor/app';
 // Pages
 import { ConfirmacaoEntrega } from './pages/ConfirmacaoEntrega';
 import { Dashboard } from './pages/Dashboard';
@@ -12,6 +12,10 @@ import { EntregaDetails } from './pages/EntregaDetails';
 import { EntregasList } from './pages/EntregasList';
 import { Historico } from './pages/Historico';
 import { Login } from './pages/Login';
+import { Preferences } from '@capacitor/preferences';
+import { Toast } from '@capacitor/toast';
+// import { apiService } from './services/api';
+// import { CapacitorHttp, type HttpResponse } from '@capacitor/core';
 
 // Loading screen
 const LoadingScreen: React.FC = () => (
@@ -132,8 +136,58 @@ const AppWithStorage: React.FC<AppProps> = ({ storageReady }) => {
 
 function App() {
   const [storageReady, setStorageReady] = useState(false);
+  // const [foto, setFoto] = useState<any>()
 
   useEffect(() => {
+    console.log("APP MONTADO");
+
+    CapacitorApp.addListener('appRestoredResult', async (data) => {
+      console.log('APP RESTORED RESULT:', data);
+    
+      if (
+      data.pluginId === 'Camera' &&
+      data.methodName === 'getPhoto' &&
+      data.success
+      ) {
+        const photo = data.data;
+
+        console.log('FOTO RECUPERADA', photo);
+
+        const blob = await fetch(photo.webPath).then(r => r.blob());
+
+        // continuar upload aqui
+        const formData = new FormData();
+
+        formData.append(
+          'file',
+          blob,
+          `foto.${photo.format}`
+        );
+
+        const { value: codigoLido } = await Preferences.get({
+          key: 'codigoEntrega'
+        });
+
+        console.log(codigoLido)
+
+        const response = await fetch(
+          `http://192.168.1.178:8001/upload-canhoto/${codigoLido}`,
+          {
+            method: 'POST',
+            body: formData,
+          }
+        );
+
+        console.log(await response.text());
+        await Toast.show({
+          text: 'Upload realizado com sucesso!'
+        });
+      }
+    
+    });
+
+
+
     const initStorage = async () => {
       try {
         await Promise.race([
