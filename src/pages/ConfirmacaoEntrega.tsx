@@ -1,25 +1,67 @@
-import React, { useState } from 'react';
-import { useLocation } from 'wouter';
-import { Header } from '../components/Header';
-import { Card } from '../components/Card';
-import { Button } from '../components/Button';
+import React, { useEffect, useState, type SyntheticEvent } from "react";
+import { useLocation } from "wouter";
+import { Header } from "../components/Header";
+import { Card } from "../components/Card";
+import { Button } from "../components/Button";
 // import { Loading } from '../components/Loading';
-import { useEntregas } from '../contexts/EntregasContext';
-import { BarcodeFormat, BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
+import { useEntregas } from "../contexts/EntregasContext";
+// import {
+//   BarcodeFormat,
+//   BarcodeScanner,
+// } from "@capacitor-mlkit/barcode-scanning";
 // import { apiService } from '../services/api';
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
-import { Preferences } from '@capacitor/preferences';
-import { Toast } from '@capacitor/toast';
+import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
+import { Preferences } from "@capacitor/preferences";
+// import { Toast } from "@capacitor/toast";
+import { Input } from "../components/Input";
 // import { useToast } from '../components/Toast';
 // import { gpsService } from '../services/gps';
 // import type { GPSPosition } from '../services/gps';
 
 export const ConfirmacaoEntrega: React.FC = () => {
-  console.log("MONTADO")
+  console.log("MONTADO");
   const [, setLocation] = useLocation();
   const { entregaSelecionada } = useEntregas();
-  const [codigoLido, setCodigoLido] = useState('');
+  const [codigoNota, setCodigoNota] = useState<string | undefined>(undefined);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+
   // const [caminhoFoto, setCaminhoFoto] = useState < MediaResult >()
+
+  const handleChangeCodigoNota = (event: any) => {
+    console.log(event.target.value);
+    setCodigoNota(event.target.value);
+  };
+
+  useEffect(() => {
+    // const blob = await fetch(photo.webPath).then((r) => r.blob());
+
+    // // continuar upload aqui
+    // const formData = new FormData();
+
+    // formData.append("file", blob, `foto.${photo.format}`);
+
+    // const { value: codigoLido } = await Preferences.get({
+    //   key: "codigoEntrega",
+    // });
+
+    // console.log(codigoLido);
+
+    // const response = await fetch(
+    //   `http://192.168.1.178:8001/upload-canhoto/${codigoLido}`,
+    //   {
+    //     method: "POST",
+    //     body: formData,
+    //   },
+    // );
+
+    // console.log(await response.text());
+    // await Toast.show({
+    //   text: "Upload realizado com sucesso!",
+    // });
+
+    console.log("RETORNOU!");
+  }, []);
 
   // async function abrirCamera() {
   //   try {
@@ -47,65 +89,103 @@ export const ConfirmacaoEntrega: React.FC = () => {
   //     console.error('takePhoto failed:', message);
   //   }
   // };
+  const handleFileChange = (event: any) => {
+    const file = event.target.files?.[0];
 
-  const abrirScanner = async () => {
-  try {
-    const permission = await BarcodeScanner.requestPermissions();
+    console.log(file.size / 1024 / 1024, "MB");
+    console.log(file.type);
 
-    if (permission.camera !== 'granted') {
-      alert('Permissão da câmera negada');
-      return;
+    if (!file) return;
+
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
     }
 
-    const result = await BarcodeScanner.scan({
-      formats: [
-        BarcodeFormat.Code128,
-        BarcodeFormat.Code39
-      ]
-    });
+    setSelectedFile(file);
 
-    if (result.barcodes.length > 0) {
-      const codigo = result.barcodes[0].displayValue ?? '';
-      // setCodigoLido(codigo);
+    if (file.type.startsWith("image/")) {
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  };
 
-      if (codigo.length === 44) {
-        console.log('Chave NF-e válida');   
-        
-        alert(`Código lido: ${codigo}`);
-        setCodigoLido(codigo)
-
-        await Preferences.set({
-          key: 'codigoEntrega',
-          value: codigo
-        });
-
-        const photo = await Camera.getPhoto({
-          quality: 90,
-          allowEditing: false,
-          resultType: CameraResultType.Uri,
-          source: CameraSource.Camera,
-        });
-        console.log(photo)
-      }else {
-
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
       }
-      
+    };
+  }, [previewUrl]);
+
+  const ConfirmarEntrega = () => {};
+
+  const abrirCamera = async () => {
+    // const photo = data.data;
+
+    // console.log("FOTO RECUPERADA", photo);
+
+    // const blob = await fetch(photo.webPath).then((r) => r.blob());
+
+    // // continuar upload aqui
+    // const formData = new FormData();
+
+    // formData.append("file", blob, `foto.${photo.format}`);
+
+    // const { value: codigoLido } = await Preferences.get({
+    //   key: "codigoEntrega",
+    // });
+
+    // console.log(codigoLido);
+
+    // const response = await fetch(
+    //   `http://192.168.1.178:8001/upload-canhoto/${codigoLido}`,
+    //   {
+    //     method: "POST",
+    //     body: formData,
+    //   },
+    // );
+
+    // console.log(await response.text());
+    // await Toast.show({
+    //   text: "Upload realizado com sucesso!",
+    // });
+
+    try {
+      const permission = await Camera.requestPermissions();
+
+      if (permission.camera !== "granted") {
+        alert("Permissão da câmera negada");
+        return;
+      }
+
+      await Preferences.set({
+        key: "entregaAtual",
+        value: JSON.stringify({
+          pagina: `confirmar/${entregaSelecionada?.id}`,
+          pedido: entregaSelecionada?.ordernumber,
+          codigoNota: codigoNota,
+          fotoPendente: true,
+        }),
+      });
+
+      const photo = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Camera,
+      });
+      console.log(photo);
+
       // Carrega entregas da rota atual
       // if () {
       //   await carregarEntregas(response.rotaAtual.id);
       // }
-    }else{
-      await Toast.show({
-        text: 'Código inválido. Escaneie novamente.'
-      });
-      return;
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao abrir scanner");
+      console.log("ERRO! DFEBUUG DO CÓDIGO, ERRO NA REQUISIÇÃO " + error);
     }
-  } catch (error) {
-    console.error(error);
-    alert('Erro ao abrir scanner');
-    console.log("ERRO! DFEBUUG DO CÓDIGO, ERRO NA REQUISIÇÃO "+error)
-  }
-}
+  };
   //   try {
   //     console.log("ANTES DA FOTO");
 
@@ -184,12 +264,12 @@ export const ConfirmacaoEntrega: React.FC = () => {
   //   if (file) {
   //     setFoto(file);
 
-      // Cria preview
-      // const reader = new FileReader();
-      // reader.onload = (event) => {
-      //   setFotoPreview(event.target?.result as string);
-      // };
-      // reader.readAsDataURL(file);
+  // Cria preview
+  // const reader = new FileReader();
+  // reader.onload = (event) => {
+  //   setFotoPreview(event.target?.result as string);
+  // };
+  // reader.readAsDataURL(file);
   //   }
   // };
 
@@ -254,34 +334,34 @@ export const ConfirmacaoEntrega: React.FC = () => {
   //     return;
   //   }
 
-    // if (!gpsPosition) {
-    //   showToast('GPS não disponível', 'warning');
-    //   return;
-    // }
+  // if (!gpsPosition) {
+  //   showToast('GPS não disponível', 'warning');
+  //   return;
+  // }
 
-    // if (!entregaSelecionada) {
-    //   showToast('Entrega não selecionada', 'error');
-    //   return;
-    // }
+  // if (!entregaSelecionada) {
+  //   showToast('Entrega não selecionada', 'error');
+  //   return;
+  // }
 
-    // setIsLoading(true);
+  // setIsLoading(true);
 
-    // try {
-    //   await confirmarEntrega({
-    //     entregaId: entregaSelecionada.id,
-    //     foto,
-    //     assinatura,
-    //     latitude: gpsPosition.latitude,
-    //     longitude: gpsPosition.longitude,
-    //   });
+  // try {
+  //   await confirmarEntrega({
+  //     entregaId: entregaSelecionada.id,
+  //     foto,
+  //     assinatura,
+  //     latitude: gpsPosition.latitude,
+  //     longitude: gpsPosition.longitude,
+  //   });
 
-    //   showToast('Entrega confirmada com sucesso!', 'success');
-    //   setLocation('/entregas');
-    // } catch (error: any) {
-    //   showToast(error.message || 'Erro ao confirmar entrega', 'error');
-    // } finally {
-    //   setIsLoading(false);
-    // }
+  //   showToast('Entrega confirmada com sucesso!', 'success');
+  //   setLocation('/entregas');
+  // } catch (error: any) {
+  //   showToast(error.message || 'Erro ao confirmar entrega', 'error');
+  // } finally {
+  //   setIsLoading(false);
+  // }
   // };
 
   // if (!entregaSelecionada) {
@@ -302,24 +382,92 @@ export const ConfirmacaoEntrega: React.FC = () => {
         subtitle={entregaSelecionada?.address}
       />
 
-      <main className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <main className="max-w-4xl mx-auto flex flex-col justify-between h-[calc(100vh-116px)] px-4 py-8 sm:px-6 lg:px-8">
         {/* Foto */}
-        <Button
-          variant="primary"
-          size="lg"
-          fullWidth
-          onClick={abrirScanner}
-        >
-          📷 Ler Código de Barras
-        </Button>
 
-        {codigoLido && (
-          <div className="mt-4 p-3 bg-green-100 rounded-lg">
-            <p className="text-sm text-gray-600">Código Lido:</p>
-            <p className="font-bold text-green-700">{codigoLido}</p>
-          </div>
-        )}
+        <div className="flex gap-5 mb-6 items-center justify-between grow-2 flex-col">
+          <Input
+            id="cpf"
+            type="number"
+            placeholder="Digite o número da nota "
+            value={codigoNota}
+            onChange={handleChangeCodigoNota}
+            className={"border-red-500"}
+          />
+          {/* Image Preview Window */}
+          {previewUrl ? (
+            <div style={{ marginTop: "15px" }}>
+              <img
+                src={previewUrl}
+                alt="Preview"
+                style={{ maxWidth: "300px", borderRadius: "8px" }}
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center w-full grow-1">
+              <label className="flex flex-col items-center justify-center w-full h-full bg-neutral-secondary-medium border border-dashed rounded-xl border-default-strong rounded-base cursor-pointer hover:bg-neutral-tertiary-medium">
+                <div className="flex flex-col items-center justify-center text-body pt-5 pb-6">
+                  <svg
+                    className="w-8 h-8 mb-4"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 17h3a3 3 0 0 0 0-6h-.025a5.56 5.56 0 0 0 .025-.5A5.5 5.5 0 0 0 7.207 9.021C7.137 9.017 7.071 9 7 9a4 4 0 1 0 0 8h2.167M12 19v-9m0 0-2 2m2-2 2 2"
+                    />
+                  </svg>
+                  <p className="mb-2 text-sm">
+                    <span className="font-semibold">Click to upload</span> or
+                    drag and drop
+                  </p>
+                  <p className="text-xs">
+                    SVG, PNG, JPG or GIF (MAX. 800x400px)
+                  </p>
+                </div>
+                <input
+                  id="dropzone-file"
+                  accept="image/*"
+                  type="file"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+              </label>
+            </div>
+          )}
 
+          {/* <Button variant="primary" size="lg" fullWidth onClick={abrirCamera}>
+            📷 Tirar Foto
+          </Button> */}
+          <Card className="w-full">
+            <div className="space-y-3">
+              <Button
+                variant="success"
+                size="lg"
+                fullWidth
+                onClick={ConfirmarEntrega}
+              >
+                ✓ Confirmar Entrega
+              </Button>
+
+              <Button
+                variant="secondary"
+                size="lg"
+                fullWidth
+                onClick={() => setLocation("/entregas")}
+              >
+                ← Cancelar
+              </Button>
+            </div>
+          </Card>
+        </div>
         {/* GPS */}
         {/* <Card className="mb-6">
           <h3 className="font-semibold text-gray-900 mb-4">📍 Localização</h3>
@@ -349,27 +497,7 @@ export const ConfirmacaoEntrega: React.FC = () => {
         </Card> */}
 
         {/* Ações */}
-        <Card>
-          <div className="space-y-3">
-            <Button
-              variant="success"
-              size="lg"
-              fullWidth
-            >
-              ✓ Confirmar Entrega
-            </Button>
-
-            <Button
-              variant="secondary"
-              size="lg"
-              fullWidth
-              onClick={() => setLocation('/entregas')}
-            >
-              ← Cancelar
-            </Button>
-          </div>
-        </Card>
       </main>
     </div>
   );
-}
+};

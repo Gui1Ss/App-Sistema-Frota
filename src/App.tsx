@@ -1,19 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { Route, Router, useLocation, useRoute } from 'wouter';
-import { ToastContainer } from './components/Toast';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { EntregasProvider } from './contexts/EntregasContext';
-import { storageService } from './services/storage';
-import { App as CapacitorApp } from '@capacitor/app';
+import React, { useEffect, useState } from "react";
+import { Route, Router, useLocation, useRoute } from "wouter";
+import { ToastContainer } from "./components/Toast";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { EntregasProvider } from "./contexts/EntregasContext";
+import { storageService } from "./services/storage";
+import { App as CapacitorApp } from "@capacitor/app";
 // Pages
-import { ConfirmacaoEntrega } from './pages/ConfirmacaoEntrega';
-import { Dashboard } from './pages/Dashboard';
-import { EntregaDetails } from './pages/EntregaDetails';
-import { EntregasList } from './pages/EntregasList';
-import { Historico } from './pages/Historico';
-import { Login } from './pages/Login';
-import { Preferences } from '@capacitor/preferences';
-import { Toast } from '@capacitor/toast';
+import { ConfirmacaoEntrega } from "./pages/ConfirmacaoEntrega";
+import { Dashboard } from "./pages/Dashboard";
+import { EntregaDetails } from "./pages/EntregaDetails";
+import { EntregasList } from "./pages/EntregasList";
+import { Historico } from "./pages/Historico";
+import { Login } from "./pages/Login";
+import { Preferences } from "@capacitor/preferences";
 // import { apiService } from './services/api';
 // import { CapacitorHttp, type HttpResponse } from '@capacitor/core';
 
@@ -39,17 +38,24 @@ const NotFound: React.FC = () => (
 
 // Renderiza 404 somente quando nenhuma rota conhecida casar
 const NotFoundRoute: React.FC = () => {
-
   // verifica se alguma rota conhecida casa com a URL atual
-  const [isHome] = useRoute('/');
-  const [isDashboard] = useRoute('/dashboard');
-  const [isEntregas] = useRoute('/entregas');
-  const [isEntregaId] = useRoute('/entregas/:id');
-  const [isConfirm] = useRoute('/confirmar/:id');
-  const [isHistorico] = useRoute('/historico');
-  const [isLogin] = useRoute('/login');
+  const [isHome] = useRoute("/");
+  const [isDashboard] = useRoute("/dashboard");
+  const [isEntregas] = useRoute("/entregas");
+  const [isEntregaId] = useRoute("/entregas/:id");
+  const [isConfirm] = useRoute("/confirmar/:id");
+  const [isHistorico] = useRoute("/historico");
+  const [isLogin] = useRoute("/login");
 
-  if (isHome || isDashboard || isEntregas || isEntregaId || isConfirm || isHistorico || isLogin) {
+  if (
+    isHome ||
+    isDashboard ||
+    isEntregas ||
+    isEntregaId ||
+    isConfirm ||
+    isHistorico ||
+    isLogin
+  ) {
     return null;
   }
 
@@ -63,7 +69,7 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     // Redireciona para dashboard se autenticado, senão para login
-    setLocation(isAuthenticated ? '/dashboard' : '/login');
+    setLocation(isAuthenticated ? "/dashboard" : "/login");
   }, [isAuthenticated, setLocation]);
 
   return null;
@@ -77,8 +83,8 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       // Se está em uma rota protegida, redireciona para login
-      if (location !== '/login') {
-        setLocation('/login');
+      if (location !== "/login") {
+        setLocation("/login");
       }
     }
   }, [isAuthenticated, isLoading, location, setLocation]);
@@ -136,57 +142,60 @@ const AppWithStorage: React.FC<AppProps> = ({ storageReady }) => {
 
 function App() {
   const [storageReady, setStorageReady] = useState(false);
+  const [, setLocation] = useLocation();
   // const [foto, setFoto] = useState<any>()
 
-  useEffect(() => {
-    console.log("APP MONTADO");
+  async function restaurarEstado() {
+    const { value } = await Preferences.get({
+      key: "entregaAtual",
+    });
 
-    CapacitorApp.addListener('appRestoredResult', async (data) => {
-      console.log('APP RESTORED RESULT:', data);
-    
+    if (!value) return;
+
+    const estado = JSON.parse(value);
+
+    console.log(estado);
+
+    if (estado.fotoPendente) {
+      setLocation(estado.pagina);
+    }
+  }
+
+  useEffect(() => {
+    restaurarEstado();
+    // console.log("APP MONTADO");
+
+    CapacitorApp.addListener("appRestoredResult", async (data) => {
+      console.log("APP RESTORED RESULT:", data);
+
       if (
-      data.pluginId === 'Camera' &&
-      data.methodName === 'getPhoto' &&
-      data.success
+        data.pluginId === "Camera" &&
+        data.methodName === "getPhoto" &&
+        data.success
       ) {
         const photo = data.data;
 
-        console.log('FOTO RECUPERADA', photo);
-
-        const blob = await fetch(photo.webPath).then(r => r.blob());
-
-        // continuar upload aqui
-        const formData = new FormData();
-
-        formData.append(
-          'file',
-          blob,
-          `foto.${photo.format}`
-        );
-
-        const { value: codigoLido } = await Preferences.get({
-          key: 'codigoEntrega'
+        await Preferences.set({
+          key: "ultimaFoto",
+          value: photo.webPath,
         });
 
-        console.log(codigoLido)
-
-        const response = await fetch(
-          `http://192.168.1.178:8001/upload-canhoto/${codigoLido}`,
-          {
-            method: 'POST',
-            body: formData,
-          }
-        );
-
-        console.log(await response.text());
-        await Toast.show({
-          text: 'Upload realizado com sucesso!'
+        const { value } = await Preferences.get({
+          key: "entregaAtual",
         });
+
+        if (!value) return;
+
+        const estado = JSON.parse(value);
+
+        console.log(estado);
+
+        console.log("FOTO RECUPERADA", photo);
+        if (estado.fotoPendente) {
+          setLocation(estado.pagina);
+        }
       }
-    
     });
-
-
 
     const initStorage = async () => {
       try {
@@ -195,7 +204,7 @@ function App() {
           new Promise<void>((resolve) => setTimeout(resolve, 5000)),
         ]);
       } catch (error) {
-        console.error('Erro ao inicializar storage:', error);
+        console.error("Erro ao inicializar storage:", error);
       } finally {
         setStorageReady(true);
       }
